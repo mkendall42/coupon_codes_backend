@@ -75,7 +75,7 @@ RSpec.describe "Merchants Controller tests", type: :request do
       headers = {"CONTENT_TYPE" => "application/json"}
       patch "/api/v1/merchants/#{@merchant1.id}", headers: headers, params: JSON.generate(updated_merchant_attributes)
 
-      binding.pry
+      # binding.pry
 
       updated_merchant = Merchant.find_by(id: @merchant1.id)
       
@@ -86,7 +86,23 @@ RSpec.describe "Merchants Controller tests", type: :request do
     end
 
     it "sends appropriate 400 level error when no id found" do
+      #Choose very large id (could choose random one not present to be REALLY thorough later)
+      nonexistant_id = 100000
+      updated_merchant_attributes = { name: "Schrodinger-Jorgensen" }
 
+      #Then run update request on that id (to ensure valid)
+      headers = {"CONTENT_TYPE" => "application/json"}
+      patch "/api/v1/merchants/#{nonexistant_id}", headers: headers, params: JSON.generate(updated_merchant_attributes)
+      
+      #Asseration(s) - test the response JSON text, AND that the record is updated in the DB
+      #NOTE: WEIRD - @merchant1 persists in memory even after DB is changes (and it's not in DB anymore)...is this b/c it's @ ?
+      updated_merchant = Merchant.find_by(id: nonexistant_id)
+      
+      expect(response).to_not be_successful
+      expect(response.status).to eq(404)
+      expect(updated_merchant).to eq(nil)
+
+      #Later: may need to check response body
     end
 
   end

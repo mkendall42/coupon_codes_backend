@@ -29,6 +29,16 @@ RSpec.describe "Items endpoints", type: :request do
 
       expect(items[:data].count).to eq(4)
     end
+
+    it 'can sort items by ascending price' do
+
+      get '/api/v1/items?sorted=price'
+
+      expect(response).to be_successful
+      items = JSON.parse(response.body, symbolize_names: true)
+      
+      expect(items[:data].first[:attributes][:name]).to eq("Cat toy")
+      expect(items[:data].last[:attributes][:name]).to eq("can of ground peas")
+    end
   end
-  
 end

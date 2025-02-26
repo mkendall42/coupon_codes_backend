@@ -7,9 +7,10 @@ class Api::V1::MerchantsController < ApplicationController
       merchants = Merchant.all
     end
 
+    options = { count: params[:count] == 'true' }
     #also need returned and count values
 
-    render json: MerchantSerializer.new(merchants)
+    render json: MerchantSerializer.new(merchants, options).serializable_hash
   end
 
 end

@@ -4,7 +4,8 @@ require 'date'
 RSpec.describe "Merchants Controller tests", type: :request do
   before(:each) do
     #NOTE: forgot that in testing env, the DB is empty.  ARRGH!
-    Merchant.destroy_all
+    # Merchant.destroy_all
+
     @merchant1 = Merchant.create!(name: "Schroeder-Jerde")
     @merchant2 = Merchant.create!(name: "Nile")
     @merchant3 = Merchant.create!(name: "Avago Technologies")
@@ -39,10 +40,6 @@ RSpec.describe "Merchants Controller tests", type: :request do
         }
       }
       expect(merchant_data).to eq(expected_message)
-      #These seem superfluous now that I've specified the full structure
-      # expect(merchant_data.count).to eq(1)
-      # expect(merchant_data[:data].count).to eq(3)
-      # expect(merchant_data[:data][:attributes].count).to eq(1)
     end
 
     it "correcltly ignore attributes beyond name in updating" do
@@ -69,19 +66,21 @@ RSpec.describe "Merchants Controller tests", type: :request do
     end
 
     it "handles empty body request properly" do
-      previous_merchant_name = @merchant1.name
+      # previous_merchant_name = @merchant1.name
+      previous_merchant = @merchant1
       updated_merchant_attributes = {}
 
-      #NOTE: for some reason, it doesn't like empty params - 400 code.  Is patch command illegal without body?
       headers = {"CONTENT_TYPE" => "application/json"}
       patch "/api/v1/merchants/#{@merchant1.id}", headers: headers, params: JSON.generate(updated_merchant_attributes)
-
-      # binding.pry
 
       updated_merchant = Merchant.find_by(id: @merchant1.id)
       
       expect(response).to_not be_successful
-      expect(updated_merchant.name).to eq(previous_merchant_name)
+      #Check each attribute (full object equality is NOT sufficient here - subtle issue!)
+      expect(updated_merchant.id).to eq(previous_merchant.id)
+      expect(updated_merchant.name).to eq(previous_merchant.name)
+      expect(updated_merchant.created_at).to eq(previous_merchant.created_at)
+      expect(updated_merchant.updated_at).to eq(previous_merchant.updated_at)
 
       #Could consider checking that DB count doesn't change
     end
@@ -90,6 +89,8 @@ RSpec.describe "Merchants Controller tests", type: :request do
       #Choose very large id (could choose random one not present to be REALLY thorough later)
       nonexistant_id = 100000
       updated_merchant_attributes = { name: "Schrodinger-Jorgensen" }
+
+      binding.pry
 
       #Then run update request on that id (to ensure valid)
       headers = {"CONTENT_TYPE" => "application/json"}
@@ -104,8 +105,9 @@ RSpec.describe "Merchants Controller tests", type: :request do
       expect(response.status).to eq(404)
       expect(updated_merchant).to eq(nil)
 
-      #Later: may need to check response body
     end
+    
+    #NOTE FOR LATER: may need to check response body (depending on 400-level code)
 
   end
 

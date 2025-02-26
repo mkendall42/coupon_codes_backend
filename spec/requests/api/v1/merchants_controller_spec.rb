@@ -13,6 +13,7 @@ RSpec.describe "Merchants Controller tests", type: :request do
 
   describe "Updating (patch) tests" do
     it "can update a Merchant record with only name provided" do
+      #NOTE: might change which @merchant referred to in different spots for better coverage
       # found_merchant = Merchant.find_by(id: id)
       previous_merchant_name = @merchant1.name
       updated_merchant_attributes = { name: "Schrodinger-Jorgensen" }

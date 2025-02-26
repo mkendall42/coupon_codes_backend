@@ -7,4 +7,7 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+
+  patch "/api/v1/merchants/:id", to: "api/v1/merchants#update"
+  patch "/api/v1/items/:id", to: "api/v1/items#update"
 end

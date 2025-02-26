@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'date'
 
 RSpec.describe "Merchants Controller tests", type: :request do
   before(:each) do
@@ -44,11 +45,44 @@ RSpec.describe "Merchants Controller tests", type: :request do
     end
 
     it "correcltly ignore attributes beyond name in updating" do
+      previous_merchant_name = @merchant1.name
+      updated_merchant_attributes = {
+        name: "Schrodinger-Jorgensen",
+        created_at: Time.now,
+        id: 10000,
+        random_attr: "illegal value"
+      }
+
+      #Then run update request on that id (to ensure valid)
+      headers = {"CONTENT_TYPE" => "application/json"}
+      patch "/api/v1/merchants/#{@merchant1.id}", headers: headers, params: JSON.generate(updated_merchant_attributes)
+      
+      #Asseration(s) - test the response JSON text, AND that the record is updated in the DB
+      #NOTE: WEIRD - @merchant1 persists in memory even after DB is changes (and it's not in DB anymore)...is this b/c it's @ ?
+      updated_merchant = Merchant.find_by(id: @merchant1.id)
+      
+      expect(response).to be_successful
+      expect(updated_merchant.name).to eq(updated_merchant_attributes[:name])
+      expect(updated_merchant.created_at).to_not eq(updated_merchant_attributes[:created_at])
 
     end
 
     it "handles empty body request properly" do
+      previous_merchant_name = @merchant1.name
+      updated_merchant_attributes = {}
 
+      #NOTE: for some reason, it doesn't like empty params - 400 code.  Is patch command illegal without body?
+      headers = {"CONTENT_TYPE" => "application/json"}
+      patch "/api/v1/merchants/#{@merchant1.id}", headers: headers, params: JSON.generate(updated_merchant_attributes)
+
+      binding.pry
+
+      updated_merchant = Merchant.find_by(id: @merchant1.id)
+      
+      expect(response).to be_successful
+      expect(updated_merchant.name).to eq(previous_merchant_name)
+
+      #Could consider checking that DB count doesn't change
     end
 
     it "sends appropriate 400 level error when no id found" do

@@ -1,12 +1,17 @@
 class Api::V1::MerchantsController < ApplicationController
 
   def update
-    render json: 
+    updated_merchant = Poster.update(params[:id], merchant_update_params)
+
+    render json: MerchantSerializer.new(updated_merchant)
   end
 
 
   private
 
-  #For strong params checking and other helper methods later
+  def merchant_update_params
+    #Only accept name as updateable (per requirements)
+    params.require(:merchant).permit(:name)
+  end
 
 end

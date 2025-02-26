@@ -5,10 +5,10 @@ RSpec.describe "Merchants endpoints", type: :request do
   describe "#index" do
     it "can retrieve all merchants" do
       Merchant.destroy_all
-      Merchant.create!(name: "Barbara", item_count: 20)
-      Merchant.create!(name: "Mark", item_count: 30)
-      Merchant.create!(name: "Jackson", item_count: 40)
-      Merchant.create!(name: "Jason", item_count:10)
+      Merchant.create!(name: "Barbara")
+      Merchant.create!(name: "Mark")
+      Merchant.create!(name: "Jackson")
+      Merchant.create!(name: "Jason")
 
       get "/api/v1/merchants"
 
@@ -32,7 +32,5 @@ RSpec.describe "Merchants endpoints", type: :request do
 
       expect(merchants[:data].first[:attributes][:name]).to eq("Jason")
     end
-
-    it "can "
   end
 end

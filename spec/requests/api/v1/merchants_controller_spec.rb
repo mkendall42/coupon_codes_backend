@@ -80,7 +80,7 @@ RSpec.describe "Merchants Controller tests", type: :request do
 
       updated_merchant = Merchant.find_by(id: @merchant1.id)
       
-      expect(response).to be_successful
+      expect(response).to_not be_successful
       expect(updated_merchant.name).to eq(previous_merchant_name)
 
       #Could consider checking that DB count doesn't change
@@ -99,6 +99,7 @@ RSpec.describe "Merchants Controller tests", type: :request do
       #NOTE: WEIRD - @merchant1 persists in memory even after DB is changes (and it's not in DB anymore)...is this b/c it's @ ?
       updated_merchant = Merchant.find_by(id: nonexistant_id)
       
+      expect{ Merchant.find(nonexistant_id) }.to raise_error(ActiveRecord::RecordNotFound)
       expect(response).to_not be_successful
       expect(response.status).to eq(404)
       expect(updated_merchant).to eq(nil)

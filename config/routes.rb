@@ -10,4 +10,6 @@ Rails.application.routes.draw do
 
   patch "/api/v1/merchants/:id", to: "api/v1/merchants#update"
   patch "/api/v1/items/:id", to: "api/v1/items#update"
+  #Optional: could implement separate route for put w/ items (but not req'd)
+  # put "/api/v1/items/:id", to: "api/v1/items#update"
 end

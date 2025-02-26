@@ -22,7 +22,43 @@ RSpec.describe "Items Controller tests", type: :request do
 
   describe "Updating (patch) tests" do
     it "updates an Item record with all valid attributes" do
+      previous_item_name = @item4.name    #We'll choose to update item4 (because we can!)
+      updated_item_attributes = {
+        name: "hypercube",
+        description: "now with one additional dimension!",
+        unit_price: 8.00 ** (4 / 3),     #Hyuk hyuk
+        merchant_id: @merchant4.id      #Alt: could assign to different merchant, then check
+      }
 
+      headers = {"CONTENT_TYPE" => "application/json"}
+      patch "/api/v1/items/#{@item4.id}", headers: headers, params: JSON.generate(updated_item_attributes)
+      
+      #Asseration(s) - test the response JSON text, AND that the record is updated in the DB
+      #NOTE: WEIRD - @merchant1 persists in memory even after DB is changes (and it's not in DB anymore)...is this b/c it's @ ?
+      updated_item = Item.find_by(id: @item4.id)
+      
+      expect(response).to be_successful
+      expect(updated_item.name).to_not eq(previous_item_name)
+      expect(updated_item.name).to eq(updated_item_attributes[:name])
+      expect(updated_item.description).to eq(updated_item_attributes[:description])
+      expect(updated_item.unit_price).to eq(updated_item_attributes[:unit_price])
+      expect(updated_item.merchant_id).to eq(updated_item_attributes[:merchant_id])
+
+      item_data = JSON.parse(response.body, symbolize_names: true)
+      expected_message = {
+        data: {
+          id: @item4.id.to_s,
+          type: "item",
+          attributes: {
+            name: updated_item.name,
+            description: updated_item.description,
+            unit_price: updated_item.unit_price,
+            merchant_id: updated_item.merchant_id
+          }
+        }
+      }
+
+      expect(item_data).to eq(expected_message)
     end
 
     it "updates an Item record with some valid attributes" do

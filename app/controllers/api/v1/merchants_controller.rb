@@ -7,6 +7,8 @@ class Api::V1::MerchantsController < ApplicationController
       merchants = Merchant.all
     end
 
+    #also need returned and count values
+
     render json: MerchantSerializer.new(merchants)
   end
 

@@ -6,7 +6,10 @@ class Api::V1::MerchantsController < ApplicationController
     else
       merchants = Merchant.all
     end
-
+    
+    if params[:status] == "returned"
+      merchants = Merchant.has_returned_items
+    end
 
     #also need returned and count values
 

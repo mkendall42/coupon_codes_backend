@@ -10,4 +10,8 @@ class Merchant < ApplicationRecord
   def self.has_returned_items
     joins(:invoices).where( invoices: { status: "returned" })
   end
+
+  def item_count
+    items.count
+  end
 end

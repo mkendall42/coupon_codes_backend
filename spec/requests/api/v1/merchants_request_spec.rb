@@ -29,6 +29,14 @@ RSpec.describe "Merchants endpoints", type: :request do
 
       expect(merchants[:data].first[:attributes][:name]).to eq("Jason")
     end
+
+    it "can display item_count for a merchant when called for" do
+      get "/api/v1/merchants?count=true"
+
+      merchants = JSON.parse(response.body, symbolize_names: true)
+
+      expect(merchants[:data].first[:attributes][:item_count]).to be_an(Integer)
+    end
   end
 
   describe "Updating (patch) tests" do

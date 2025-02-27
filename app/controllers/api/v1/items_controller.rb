@@ -12,12 +12,20 @@ class Api::V1::ItemsController < ApplicationController
 
   def show
     item = Item.find(params[:id])
-    render json: ItemSerializer.new(item), status: :ok
+    if item
+      render json: ItemSerializer.new(item)
+    else
+      render json: { error: "Item not found" }, status: :not_found
+    end
   end
 
   def create
-    item = Item.create!(item_params) 
-    render json: ItemSerializer.new(item), status: :created
+    item = Item.create!(item_update_params) 
+    if item.save
+      render json: ItemSerializer.new(item), status: :created
+    else
+      render json: { error: "Item was not created" }, status: :unprocessable_entity
+    end
   end
 
   

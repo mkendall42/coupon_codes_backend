@@ -15,6 +15,8 @@ class Api::V1::MerchantsController < ApplicationController
     render json: MerchantSerializer.new(merchants)
   end
 
+  rescue_from ActiveRecord::RecordNotFound, with: :merchant_not_found
+  rescue_from ActionController::ParameterMissing, with: :parameter_missing_error
 
   def show
     merchant = Merchant.find(params[:id])
@@ -22,7 +24,10 @@ class Api::V1::MerchantsController < ApplicationController
   end
 
   def create
-    merchant = Merchant.create!(merchant_params) 
+    if params[:merchant].blank?
+      raise ActionController::ParameterMissing, "Merchant parameters are missing or empty"
+    end
+    merchant = Merchant.create!(merchant_update_params) 
     render json: MerchantSerializer.new(merchant), status: :created
   end
 
@@ -41,5 +46,12 @@ class Api::V1::MerchantsController < ApplicationController
     params.require(:merchant).permit(:name)
   end
 
+  def merchant_not_found
+    render json: { error: "Merchant not found" }, status: :not_found
+  end
+
+  def parameter_missing_error(exception)
+    render json: { error: exception.message }, status: :unprocessable_entity
+  end
 
 end

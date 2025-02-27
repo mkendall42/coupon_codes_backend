@@ -77,7 +77,7 @@ RSpec.describe "Merchants endpoints", type: :request do
       #NOTE: WEIRD - @merchant2 persists in memory even after DB is changes (and it's not in DB anymore)...is this b/c it's @ ?
       updated_merchant = Merchant.find_by(id: @merchant2.id)
       
-      binding.pry
+      # binding.pry
 
       expect(response).to be_successful
       expect(updated_merchant.name).to eq(updated_merchant_attributes[:name])
@@ -110,7 +110,7 @@ RSpec.describe "Merchants endpoints", type: :request do
       nonexistant_id = 100000
       updated_merchant_attributes = { name: "J-son" }
 
-      binding.pry
+      # binding.pry
 
       headers = {"CONTENT_TYPE" => "application/json"}
       patch "/api/v1/merchants/#{nonexistant_id}", headers: headers, params: JSON.generate(updated_merchant_attributes)
@@ -124,5 +124,50 @@ RSpec.describe "Merchants endpoints", type: :request do
     
     #NOTE FOR LATER: may need to check response body (depending on 400-level code)
 
+  end
+
+  describe "show single merchant" do
+    it "should return specific merchant based on id given" do
+      merchant = Merchant.create!(name: "Single Merchant")
+      get "/api/v1/merchants/#{merchant.id}"
+
+      # binding.pry
+      expect(response).to be_successful
+      json = JSON.parse(response.body, symbolize_names: true)
+      expect(json[:data][:id].to_i).to eq(merchant.id)
+      expect(json[:data][:attributes][:name]).to eq(merchant.name)
+    end
+  end
+
+  describe "GET #show when merchant does not exist" do
+    it "returns an error message" do
+      get "/api/v1/merchants/1000" # becuase 'a' is not a real id
+
+      expect(response).to have_http_status(:not_found)
+      json = JSON.parse(response.body, symbolize_names: true)
+      expect(json[:error]).to eq("Merchant not found")
+    end
+  end
+
+  describe "create merchant" do
+    it "creates a new merchant when given json data" do
+      body = { name: "New Merchant" }
+      post "/api/v1/merchants", params: body, as: :json
+      json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to have_http_status(:created)
+      expect(json[:data][:attributes][:name]).to eq("New Merchant")
+      expect(json[:data][:type]).to eq("merchant")
+    end
+  end
+
+  describe "create merchant failure" do
+    it "should give sad path message when it does not work" do
+      post "/api/v1/merchants", params: { merchant: {}} , as: :json
+      json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json['error']).to include("Merchant was not created")
+    end
   end
 end

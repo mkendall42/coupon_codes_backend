@@ -178,4 +178,28 @@ RSpec.describe "Items endpoints", type: :request do
 
   end
 
+  describe "show a single item" do
+    it "brings up specfic item based on id" do
+      item = Item.create!(name: "New Item", description: "description", unit_price: 100.00 )
+
+      get "/api/v1/items/#{item.id}"
+      json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to have_http_status(:ok)
+      expect(json[:data][:id]).to eq("#{item.id}")
+      expect(json[:data][:type]).to eq("item")
+      expect(json[:data][:attributes][:name]).to eq("New Item")
+      expect(json[:data][:attributes][:description]).to eq("description")
+      expect(json[:data][:attributes][:unit_price]).to eq(100.00)
+    end
+  end
+
+  describe "show item error" do
+    get "/api/v1/items/"
+
+    json = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to have_http_status(:not_found)
+    expect(json[:errors].first).to include("Item not found")
+  end
 end

@@ -239,7 +239,6 @@ RSpec.describe "Items endpoints", type: :request do
   
       expect(response).to have_http_status(:unprocessable_entity)
       expect(json[:error]).to eq("Item was not created")
-
     end
   end
 end

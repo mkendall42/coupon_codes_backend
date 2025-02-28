@@ -178,6 +178,7 @@ RSpec.describe "Items endpoints", type: :request do
 
   end
 
+
   describe "show a single item" do
     it "brings up specfic item based on id" do
       
@@ -241,4 +242,37 @@ RSpec.describe "Items endpoints", type: :request do
       expect(json[:error]).to eq("Item was not created")
     end
   end
+
+  describe 'can delete an item by id' do
+    it 'can delete an item by a specific id' do
+      item_to_delete = @item1.id
+      expect(Item.count).to eq(6)
+      delete "/api/v1/items/#{item_to_delete}"
+      expect(response).to be_successful
+      expect(Item.count).to eq(5)
+      expect{ Item.find(item_to_delete) }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+
+    it "deletes all invoice_items associated with a deleted item" do
+      item_to_delete = @item1.id
+      expect(Item.count).to eq(6)
+      delete "/api/v1/items/#{item_to_delete}"
+      expect(response).to be_successful
+      expect(Item.count).to eq(5)
+      expect(InvoiceItem.count).to eq(@item1.invoice_items.count)
+      expect{ Item.find(item_to_delete) }.to raise_error(ActiveRecord::RecordNotFound)
+      expect(InvoiceItem.count).to eq(@item1.invoice_items.count - @item1.invoice_items.count)
+      expect(InvoiceItem.where(item_id: item_to_delete).count).to eq(0)
+    end
+
+    it 'sends appropriate 204 status code when item is deleted' do
+      item_to_delete = @item1.id
+      delete "/api/v1/items/#{item_to_delete}"
+      expect(response).to be_successful
+      expect(response.status).to eq(204)
+      expect{ Item.find(item_to_delete) }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+  end
+
+
 end

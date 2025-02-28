@@ -14,9 +14,7 @@ class Api::V1::MerchantsController < ApplicationController
       merchants = Merchant.has_returned_items
     end
 
-    #also need returned and count values
-
-    render json: MerchantSerializer.new(merchants)
+    render json: MerchantSerializer.new(merchants, { params: { count: params[:count] } })
   end
 
   
@@ -37,6 +35,9 @@ class Api::V1::MerchantsController < ApplicationController
     render json: MerchantSerializer.new(updated_merchant)
   end
 
+  def destroy
+    render json: Merchant.delete(params[:id]), status: 204
+  end
 
   private
 

@@ -61,7 +61,7 @@ RSpec.describe "Merchants endpoints", type: :request do
       expect(merchant_data).to eq(expected_message)
     end
 
-    it "correcltly ignore attributes beyond name in updating" do
+    it "correctly ignores attributes beyond name in updating" do
       previous_merchant_name = @merchant2
       updated_merchant_attributes = {
         name: "Marky Mark",
@@ -123,7 +123,37 @@ RSpec.describe "Merchants endpoints", type: :request do
     end
     
     #NOTE FOR LATER: may need to check response body (depending on 400-level code)
+  end
 
+  describe 'can delete a merchant by id' do
+    it 'can delete a merchant by a specific id' do
+      merchant_to_delete = @merchant1.id
+      expect(Merchant.count).to eq(4)
+      delete "/api/v1/merchants/#{merchant_to_delete}"
+      expect(response).to be_successful
+      expect(Merchant.count).to eq(3)
+      expect{ Merchant.find(merchant_to_delete) }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+
+    it "deletes all items associated with a deleted merchant" do
+      merchant_to_delete = @merchant1.id
+      expect(Merchant.count).to eq(4)
+      expect(Item.count).to eq(@merchant1.items.count)
+      delete "/api/v1/merchants/#{merchant_to_delete}"
+      expect(response).to be_successful
+      expect(Merchant.count).to eq(3)
+      expect{ Merchant.find(merchant_to_delete) }.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Item.count).to eq(@merchant1.items.count - @merchant1.items.count)
+      expect(Item.where(merchant_id: merchant_to_delete).count).to eq(0)
+    end
+
+    it 'sends appropriate 204 status code when merchant is deleted' do
+      merchant_to_delete = @merchant1.id
+      delete "/api/v1/merchants/#{merchant_to_delete}"
+      expect(response).to be_successful
+      expect(response.status).to eq(204)
+      expect{ Merchant.find(merchant_to_delete) }.to raise_error(ActiveRecord::RecordNotFound)
+    end
   end
 
   describe "show single merchant" do

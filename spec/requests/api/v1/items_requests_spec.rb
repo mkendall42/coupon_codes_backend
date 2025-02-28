@@ -180,7 +180,8 @@ RSpec.describe "Items endpoints", type: :request do
 
   describe "show a single item" do
     it "brings up specfic item based on id" do
-      item = Item.create!(name: "New Item", description: "description", unit_price: 100.00 )
+      
+      item = Item.create!(name: "New Item", description: "description", unit_price: 100.00, merchant_id: @merchant1.id)
 
       get "/api/v1/items/#{item.id}"
       json = JSON.parse(response.body, symbolize_names: true)
@@ -195,11 +196,50 @@ RSpec.describe "Items endpoints", type: :request do
   end
 
   describe "show item error" do
-    get "/api/v1/items/"
+    it "returns json error message if params not met" do
+    
+      get "/api/v1/items/999"
 
-    json = JSON.parse(response.body, symbolize_names: true)
+      json = JSON.parse(response.body, symbolize_names: true)
 
-    expect(response).to have_http_status(:not_found)
-    expect(json[:errors].first).to include("Item not found")
+      expect(response).to have_http_status(:not_found)
+      expect(json[:errors]).to eq("Item not found")
+    end
+  end
+
+  describe "create item" do
+    it "will create a new item based on json" do
+
+      
+      new_item = {
+        name: "New Item",
+        description: "description",
+        unit_price: 20.00,
+        merchant_id: @merchant1.id
+      }
+  
+      headers = { "CONTENT_TYPE" => "application/json" }
+  
+      post "/api/v1/items", headers: headers, params: JSON.generate(item: new_item)
+  
+      json = JSON.parse(response.body, symbolize_names: true)
+  
+      expect(response).to have_http_status(:created)
+  
+      expect(json[:data][:attributes][:name]).to eq(new_item[:name])
+      expect(json[:data][:attributes][:description]).to eq(new_item[:description])
+      expect(json[:data][:attributes][:unit_price]).to eq(new_item[:unit_price])
+      expect(json[:data][:attributes][:merchant_id]).to eq(new_item[:merchant_id])
+    end
+  
+    it "will return an error if the required parameters are missing" do
+      post "/api/v1/items", params: {}, headers: { "CONTENT_TYPE" => "application/json" }
+  
+      json = JSON.parse(response.body, symbolize_names: true)
+  
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json[:error]).to eq("Item was not created")
+
+    end
   end
 end

@@ -163,11 +163,11 @@ RSpec.describe "Merchants endpoints", type: :request do
 
   describe "create merchant failure" do
     it "should give sad path message when it does not work" do
-      post "/api/v1/merchants", params: { merchant: {}} , as: :json
+      post "/api/v1/merchants", params: {}, headers: { "CONTENT_TYPE" => "application/json" }
       json = JSON.parse(response.body, symbolize_names: true)
-
+  
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(json['error']).to include("Merchant was not created")
+      expect(json[:error]).to eq("Merchant was not created")
     end
   end
 end

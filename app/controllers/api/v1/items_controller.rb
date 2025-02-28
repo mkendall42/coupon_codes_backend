@@ -1,4 +1,8 @@
 class Api::V1::ItemsController < ApplicationController
+
+  rescue_from ActiveRecord::RecordNotFound, with: :item_not_found
+  rescue_from ActionController::ParameterMissing, with: :parameter_missing_error
+
   def index
     if params[:sorted] == "price"
       items = Item.sorted_by_price
@@ -12,20 +16,12 @@ class Api::V1::ItemsController < ApplicationController
 
   def show
     item = Item.find(params[:id])
-    if item
-      render json: ItemSerializer.new(item)
-    else
-      render json: { error: "Item not found" }, status: :not_found
-    end
+    render json: ItemSerializer.new(item)
   end
 
   def create
     item = Item.create!(item_update_params) 
-    if item.save
-      render json: ItemSerializer.new(item), status: :created
-    else
-      render json: { error: "Item was not created" }, status: :unprocessable_entity
-    end
+    render json: ItemSerializer.new(item), status: :created 
   end
 
   
@@ -41,6 +37,14 @@ class Api::V1::ItemsController < ApplicationController
   #For strong params checking and helper methods later
   def item_update_params
     params.require(:item).permit(:name, :description, :unit_price, :merchant_id)
+  end
+
+  def item_not_found
+    render json: { errors: "Item not found" }, status: :not_found
+  end
+
+  def parameter_missing_error
+    render json: { error: "Item was not created" }, status: :unprocessable_entity
   end
   
 end

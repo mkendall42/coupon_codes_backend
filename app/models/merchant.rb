@@ -1,6 +1,7 @@
 class Merchant < ApplicationRecord
   has_many :invoices, dependent: :destroy
   has_many :items, dependent: :destroy
+  has_many :customers, through: :invoices
   #customer
 
   def self.sorted_by_age

@@ -7,6 +7,13 @@ RSpec.describe "Merchants endpoints", type: :request do
     @merchant2 = Merchant.create!(name: "Mark")
     @merchant3 = Merchant.create!(name: "Jackson")
     @merchant4 = Merchant.create!(name: "Jason")
+
+    Customer.destroy_all
+    @customer1 = Customer.create!(first_name: "John J.", last_name: "Jingleheimerschmidt")
+
+    Invoice.destroy_all
+    @invoice1 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped")
+    @invoice2 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "returned")
   end
 
   describe "#index" do
@@ -206,6 +213,22 @@ RSpec.describe "Merchants endpoints", type: :request do
   
       expect(response).to have_http_status(:unprocessable_entity)
       expect(json[:error]).to eq("Merchant was not created")
+    end
+  end
+
+  describe "can get list of invoices for a merchant based on status" do
+    it "for shipped" do
+      get "/api/v1/merchants/#{@merchant1.id}/invoices?status=shipped"
+      invoices = JSON.parse(response.body, symbolize_names: true)
+
+      expect(invoices[:data].first[:attributes][:status]).to eq("shipped")
+    end
+
+    it "for returned" do
+      get "/api/v1/merchants/#{@merchant1.id}/invoices?status=returned"
+      invoices = JSON.parse(response.body, symbolize_names: true)
+
+      expect(invoices[:data].first[:attributes][:status]).to eq("returned")
     end
   end
 end

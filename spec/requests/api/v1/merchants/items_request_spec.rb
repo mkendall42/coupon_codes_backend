@@ -4,8 +4,6 @@ require 'rspec_helper'
 RSpec.describe "Items (of Merchant) endpoints", type: :request do
   
   before(:each) do
-    #Use the same initial dataset as for parent Merchant, Item controllers
-    
     Merchant.destroy_all
     @merchant1 = Merchant.create!(name: "Barbara")
     @merchant2 = Merchant.create!(name: "Mark")
@@ -27,8 +25,6 @@ RSpec.describe "Items (of Merchant) endpoints", type: :request do
       get "/api/v1/merchants/#{@merchant1.id}/items"
       items_of_merchant = JSON.parse(response.body, symbolize_names: true)
 
-      # binding.pry
-
       expect(response).to be_successful
       expect(items_of_merchant[:data].length).to eq(1)
       expect(items_of_merchant[:data][0][:id].to_i).to eq(@item1.id)
@@ -44,7 +40,6 @@ RSpec.describe "Items (of Merchant) endpoints", type: :request do
       expect(items_of_merchant[:data][0][:attributes][:name]).to eq(@item5.name)
       expect(items_of_merchant[:data][1][:id].to_i).to eq(@item6.id)
       expect(items_of_merchant[:data][1][:attributes][:name]).to eq(@item6.name)
-      # expect(items_of_merchant).to eq([@item5, @item6])   #I hope these always order in the same way...check again later
     end
 
     it "sad path: returns error if merchant does not exist" do
@@ -54,11 +49,9 @@ RSpec.describe "Items (of Merchant) endpoints", type: :request do
 
       expect(response).to_not be_successful
       expect(response.status).to eq(404)
-      #Check the various elements of the error message.
       #Related: could I group some of these (DRY)?  I suspect so...
       expect(error_message[:message]).to eq("Your request could not be completed.")
       expect(error_message[:errors]).to be_a(Array)
-      # expect(error_message[:errors].first[:status]).to eq("404")
       expect(error_message[:errors].first[:message]).to eq("Couldn't find Merchant with 'id'=#{nonexistant_id}")
     end
 
@@ -67,7 +60,7 @@ RSpec.describe "Items (of Merchant) endpoints", type: :request do
       get "/api/v1/merchants/#{surprise_merchant.id}/items"
       items_of_merchant = JSON.parse(response.body, symbolize_names: true)
 
-      #NOTE: Should this return an error or sorts for developer empathy?
+      #NOTE / ASK: Should this return an error or sorts for developer empathy?
       expect(response).to be_successful
       expect(items_of_merchant[:data]).to eq([])
     end

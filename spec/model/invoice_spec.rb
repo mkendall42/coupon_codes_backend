@@ -7,5 +7,4 @@ describe Invoice, type: :model do
     it { should have_many :invoice_items }
     it { should have_many :transactions }
   end
-
 end

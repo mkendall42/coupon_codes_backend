@@ -3,9 +3,6 @@ class Api::V1::Merchants::ItemsController < ApplicationController
   rescue_from ActiveRecord::RecordNotFound, with: :merchant_not_found
 
   def index
-    #Need to implement exception handling here (otherwise will not proceed)
-    #NOTE: refactor later to comply with rescue_from
-
     specified_merchant = Merchant.find(params[:id])
     items_of_merchant = specified_merchant.items
     render json: ItemSerializer.new(items_of_merchant)

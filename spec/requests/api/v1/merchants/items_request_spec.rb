@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'rspec_helper'
 
 RSpec.describe "Items (of Merchant) endpoints", type: :request do
   
@@ -51,8 +52,6 @@ RSpec.describe "Items (of Merchant) endpoints", type: :request do
       get "/api/v1/merchants/#{nonexistant_id}/items"
       error_message = JSON.parse(response.body, symbolize_names: true)
 
-      # binding.pry
-
       expect(response).to_not be_successful
       expect(response.status).to eq(404)
       #Check the various elements of the error message.
@@ -63,6 +62,15 @@ RSpec.describe "Items (of Merchant) endpoints", type: :request do
       expect(error_message[:errors].first[:message]).to eq("Couldn't find Merchant with 'id'=#{nonexistant_id}")
     end
 
+    it "correctly returns empty array for merchant with no associated items" do
+      surprise_merchant = Merchant.create!(name: "Big Riggz")
+      get "/api/v1/merchants/#{surprise_merchant.id}/items"
+      items_of_merchant = JSON.parse(response.body, symbolize_names: true)
+
+      #NOTE: Should this return an error or sorts for developer empathy?
+      expect(response).to be_successful
+      expect(items_of_merchant[:data]).to eq([])
+    end
   end
 
 end

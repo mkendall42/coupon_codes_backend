@@ -225,7 +225,7 @@ RSpec.describe "Merchants endpoints", type: :request do
     end
 
     it "for returned" do
-      get "/api/v1/merchants/#{@merchant1.id}/invoices?status=shipped"
+      get "/api/v1/merchants/#{@merchant1.id}/invoices?status=returned"
       invoices = JSON.parse(response.body, symbolize_names: true)
 
       expect(invoices[:data].first[:attributes][:status]).to eq("returned")

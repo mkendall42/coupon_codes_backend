@@ -1,5 +1,6 @@
 class Api::V1::Items::MerchantController < ApplicationController
   #This specifically controls the /api/v1/items/:id/merchant endpoint
+  # rescue_from ActiveRecord::RecordNotFound, with: merchant_not_found
 
   def index
     begin
@@ -30,4 +31,10 @@ class Api::V1::Items::MerchantController < ApplicationController
     render json: MerchantSerializer.new(associated_merchant)
     
   end
+
+  private
+
+  # def merchant_not_found
+  #   #Render appropriate JSON
+  # end
 end

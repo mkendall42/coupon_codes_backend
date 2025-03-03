@@ -23,13 +23,19 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
 
   describe "#index tests" do
     it "happy path: returns merchant belonging to specified item (two examples)" do
-      #Try item belonging to @merchant2 (has another item)
-      get "/api/v1/items/#{@item3.id}/merchant"
-
-
-
-      #Try item belonging to @merchant3
-
+      #Make an enumerable here to try both examples quickly (for kicks):
+      testing_sequence = [[@item3, @merchant2], [@item4, @merchant3]]
+      
+      testing_sequence.each do |item, merchant|
+        get "/api/v1/items/#{item.id}/merchant"
+        response_data = JSON.parse(response.body, symbolize_names: true)
+  
+        expect(response).to be_successful
+        expect(response_data[:data].length).to eq(3)
+        expect(response_data[:data][:id]).to eq(merchant.id.to_s)
+        expect(response_data[:data][:type]).to eq("merchant")
+        expect(response_data[:data][:attributes][:name]).to eq(merchant.name)
+      end
     end
     
     it "sad path: item does not exist" do

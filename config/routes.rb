@@ -15,6 +15,12 @@ Rails.application.routes.draw do
   get "/api/v1/items/:id", to: "api/v1/items#show"
   post "/api/v1/items", to: "api/v1/items#create"
 
+  #DOUBLE CHECK SINGULAR/PLURAL - ARRRGH YEP THAT WAS IT!!!
+  get "/api/v1/merchants/:id/items", to: "api/v1/merchants/items#index"
+  # get "/api/v1/merchants/:id/items", to: "api/v1/merchant_items#index"
+  #Is #index the best action for below, or #show?  I assume #index, even though it's only one entry
+  get "/api/v1/items/:id/merchant", to: "api/v1/items/merchant#index"
+
   patch "/api/v1/merchants/:id", to: "api/v1/merchants#update"
   patch "/api/v1/items/:id", to: "api/v1/items#update"
   #Optional: could implement separate route for put w/ items (but not req'd)

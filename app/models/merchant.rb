@@ -1,6 +1,7 @@
 class Merchant < ApplicationRecord
-  has_many :invoices
-  has_many :items
+  has_many :invoices, dependent: :destroy
+  has_many :items, dependent: :destroy
+  has_many :customers, through: :invoices
   #customer
 
   def self.sorted_by_age
@@ -9,5 +10,9 @@ class Merchant < ApplicationRecord
 
   def self.has_returned_items
     joins(:invoices).where( invoices: { status: "returned" })
+  end
+
+  def item_count
+    items.count
   end
 end

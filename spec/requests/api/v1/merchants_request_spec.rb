@@ -29,6 +29,14 @@ RSpec.describe "Merchants endpoints", type: :request do
 
       expect(merchants[:data].first[:attributes][:name]).to eq("Jason")
     end
+
+    it "can display item_count for a merchant when called for" do
+      get "/api/v1/merchants?count=true"
+
+      merchants = JSON.parse(response.body, symbolize_names: true)
+
+      expect(merchants[:data].first[:attributes][:item_count]).to be_an(Integer)
+    end
   end
 
   describe "Updating (patch) tests" do
@@ -61,7 +69,7 @@ RSpec.describe "Merchants endpoints", type: :request do
       expect(merchant_data).to eq(expected_message)
     end
 
-    it "correcltly ignore attributes beyond name in updating" do
+    it "correctly ignores attributes beyond name in updating" do
       previous_merchant_name = @merchant2
       updated_merchant_attributes = {
         name: "Marky Mark",
@@ -77,7 +85,7 @@ RSpec.describe "Merchants endpoints", type: :request do
       #NOTE: WEIRD - @merchant2 persists in memory even after DB is changes (and it's not in DB anymore)...is this b/c it's @ ?
       updated_merchant = Merchant.find_by(id: @merchant2.id)
       
-      binding.pry
+      # binding.pry
 
       expect(response).to be_successful
       expect(updated_merchant.name).to eq(updated_merchant_attributes[:name])
@@ -110,7 +118,7 @@ RSpec.describe "Merchants endpoints", type: :request do
       nonexistant_id = 100000
       updated_merchant_attributes = { name: "J-son" }
 
-      binding.pry
+      # binding.pry
 
       headers = {"CONTENT_TYPE" => "application/json"}
       patch "/api/v1/merchants/#{nonexistant_id}", headers: headers, params: JSON.generate(updated_merchant_attributes)
@@ -123,6 +131,81 @@ RSpec.describe "Merchants endpoints", type: :request do
     end
     
     #NOTE FOR LATER: may need to check response body (depending on 400-level code)
+  end
 
+  describe 'can delete a merchant by id' do
+    it 'can delete a merchant by a specific id' do
+      merchant_to_delete = @merchant1.id
+      expect(Merchant.count).to eq(4)
+      delete "/api/v1/merchants/#{merchant_to_delete}"
+      expect(response).to be_successful
+      expect(Merchant.count).to eq(3)
+      expect{ Merchant.find(merchant_to_delete) }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+
+    it "deletes all items associated with a deleted merchant" do
+      merchant_to_delete = @merchant1.id
+      expect(Merchant.count).to eq(4)
+      expect(Item.count).to eq(@merchant1.items.count)
+      delete "/api/v1/merchants/#{merchant_to_delete}"
+      expect(response).to be_successful
+      expect(Merchant.count).to eq(3)
+      expect{ Merchant.find(merchant_to_delete) }.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Item.count).to eq(@merchant1.items.count - @merchant1.items.count)
+      expect(Item.where(merchant_id: merchant_to_delete).count).to eq(0)
+    end
+
+    it 'sends appropriate 204 status code when merchant is deleted' do
+      merchant_to_delete = @merchant1.id
+      delete "/api/v1/merchants/#{merchant_to_delete}"
+      expect(response).to be_successful
+      expect(response.status).to eq(204)
+      expect{ Merchant.find(merchant_to_delete) }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+  end
+
+  describe "show single merchant" do
+    it "should return specific merchant based on id given" do
+      merchant = Merchant.create!(name: "Single Merchant")
+      get "/api/v1/merchants/#{merchant.id}"
+
+      # binding.pry
+      expect(response).to be_successful
+      json = JSON.parse(response.body, symbolize_names: true)
+      expect(json[:data][:id].to_i).to eq(merchant.id)
+      expect(json[:data][:attributes][:name]).to eq(merchant.name)
+    end
+  end
+
+  describe "GET #show when merchant does not exist" do
+    it "returns an error message" do
+      get "/api/v1/merchants/1000" # becuase 'a' is not a real id
+
+      expect(response).to have_http_status(:not_found)
+      json = JSON.parse(response.body, symbolize_names: true)
+      expect(json[:error]).to eq("Merchant not found")
+    end
+  end
+
+  describe "create merchant" do
+    it "creates a new merchant when given json data" do
+      body = { name: "New Merchant" }
+      post "/api/v1/merchants", params: body, as: :json
+      json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to have_http_status(:created)
+      expect(json[:data][:attributes][:name]).to eq("New Merchant")
+      expect(json[:data][:type]).to eq("merchant")
+    end
+  end
+
+  describe "create merchant failure" do
+    it "should give sad path message when it does not work" do
+      post "/api/v1/merchants", params: {}, headers: { "CONTENT_TYPE" => "application/json" }
+      json = JSON.parse(response.body, symbolize_names: true)
+  
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json[:error]).to eq("Merchant was not created")
+    end
   end
 end

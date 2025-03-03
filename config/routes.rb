@@ -10,6 +10,10 @@ Rails.application.routes.draw do
 
   get "/api/v1/merchants", to: "api/v1/merchants#index" 
   get "api/v1/items", to: "api/v1/items#index"
+  get "/api/v1/merchants/:id", to: "api/v1/merchants#show"
+  post "/api/v1/merchants", to: "api/v1/merchants#create"
+  get "/api/v1/items/:id", to: "api/v1/items#show"
+  post "/api/v1/items", to: "api/v1/items#create"
 
   #DOUBLE CHECK SINGULAR/PLURAL - ARRRGH YEP THAT WAS IT!!!
   get "/api/v1/merchants/:id/items", to: "api/v1/merchants/items#index"
@@ -21,4 +25,8 @@ Rails.application.routes.draw do
   patch "/api/v1/items/:id", to: "api/v1/items#update"
   #Optional: could implement separate route for put w/ items (but not req'd)
   # put "/api/v1/items/:id", to: "api/v1/items#update"
+  delete "/api/v1/merchants/:id", to: "api/v1/merchants#destroy"
+  delete "/api/v1/items/:id", to: "api/v1/items#destroy"
+
+  get "/api/v1/merchants/:merchant_id/customers", to: "api/v1/customers#index"
 end

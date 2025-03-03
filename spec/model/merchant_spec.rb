@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'rspec_helper'
 
 describe Merchant, type: :model do
   describe "relationships" do

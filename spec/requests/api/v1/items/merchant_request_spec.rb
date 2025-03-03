@@ -3,8 +3,6 @@ require 'rails_helper'
 RSpec.describe "Merchant (of Item) endpoints", type: :request do
   
   before(:each) do
-    #Added one item for additional sad path logic
-    
     Merchant.destroy_all
     @merchant1 = Merchant.create!(name: "Barbara")
     @merchant2 = Merchant.create!(name: "Mark")
@@ -18,7 +16,7 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
     @item4 = Item.create!(name: "can of ground peas", description: "mush", unit_price: 5, merchant_id: @merchant3[:id])
     @item5 = Item.create!(name: "cube", description: "not just any rectangular prism", unit_price: 8.00, merchant_id: @merchant4[:id])
     @item6 = Item.create!(name: "sphere", description: "now if only it were a cow", unit_price: 512.00, merchant_id: @merchant4[:id])
-    @item7 = Item.create!(name: "an unassuming book", description: "actually connects to Riven", unit_price: 1996.00, merchant_id: @merchant2[:id])   #For potential sad path logic
+    # @item7 = Item.create!(name: "an unassuming book", description: "actually connects to Riven", unit_price: 1996.00, merchant_id: @merchant2[:id])   #For potential sad path logic
   end
 
   describe "#index tests" do
@@ -38,7 +36,7 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
       end
     end
     
-    it "sad path: item does not exist" do
+    it "sad path: specified item does not exist" do
       nonexistant_id = 100000
       get "/api/v1/items/#{nonexistant_id}/merchant"
       error_message = JSON.parse(response.body, symbolize_names: true)
@@ -52,9 +50,9 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
 
     end
 
-    it "sad path: item has no associated merchant" do
-      #This one is harder to test, since creating an item requies a legal merchant_id
-      #Further, the DB is protecting against this.  I could override in the model, but this is probably not needed for this project...
+    xit "sad path: item has no associated merchant" do
+      #NOTE: disabled test for now - probably not needed, may delete later (can also delete @item7 in this case).
+      #This is harder to test; creating an item requires merchant_id, and DB protects against deleting associated merchant
 
       # get "/api/v1/items/#{@item7.id}/merchant"
 
@@ -65,7 +63,6 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
       # expect(error_message[:errors]).to be_a(Array)
       # expect(error_message[:errors].first[:message]).to eq("Couldn't find Merchant with 'id'=#{nonexistant_id}")
     end
-
   end
 
 end

@@ -2,18 +2,18 @@ require "rails_helper"
 
 RSpec.describe "Merchants endpoints", type: :request do
   before(:each) do
-    Merchant.destroy_all
+    # Merchant.destroy_all
     @merchant1 = Merchant.create!(name: "Barbara")
     @merchant2 = Merchant.create!(name: "Mark")
     @merchant3 = Merchant.create!(name: "Jackson")
     @merchant4 = Merchant.create!(name: "Jason")
 
-    Customer.destroy_all
+    # Customer.destroy_all
     @customer1 = Customer.create!(first_name: "John J.", last_name: "Jingleheimerschmidt")
     @customer2 = Customer.create!(first_name: "Timmy", last_name: "Turner")
     @customer3 = Customer.create!(first_name: "Spongebob", last_name: "Squarepants")
 
-    Invoice.destroy_all
+    # Invoice.destroy_all
     @invoice1 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped")
     @invoice2 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "returned")
     @invoice3 = Invoice.create!(customer_id: @customer2.id, merchant_id: @merchant2.id, status: "shipped")
@@ -50,7 +50,7 @@ RSpec.describe "Merchants endpoints", type: :request do
     end
   end
 
-  describe "Updating (patch) tests" do
+  describe "#update (patch) tests" do
     it "can update a Merchant record with only name provided" do
       #NOTE: might change which @merchant referred to in different spots for better coverage
       # found_merchant = Merchant.find_by(id: id)
@@ -194,7 +194,10 @@ RSpec.describe "Merchants endpoints", type: :request do
 
       expect(response).to have_http_status(:not_found)
       json = JSON.parse(response.body, symbolize_names: true)
-      expect(json[:error]).to eq("Merchant not found")
+      # expect(json[:error]).to eq("Merchant not found")
+      expect(json[:message]).to eq("Merchant not found")
+      expect(json[:errors]).to be_a(Array)
+      expect(json[:errors][0]).to eq("Couldn't find Merchant with 'id'=1000")
     end
   end
 
@@ -216,12 +219,24 @@ RSpec.describe "Merchants endpoints", type: :request do
       json = JSON.parse(response.body, symbolize_names: true)
   
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(json[:error]).to eq("Merchant was not created")
+      # expect(json[:error]).to eq("Merchant was not created")
+      expect(json[:message]).to eq("Merchant was not created")
+      expect(json[:errors]).to be_a(Array)
+      expect(json[:errors][0]).to eq("param is missing or the value is empty: merchant")
     end
   end
 
   describe "can list customers related to a specific merchant" do
     it "can grab customers by merchant id" do
+      # @customer1 = Customer.create!(first_name: "John J.", last_name: "Jingleheimerschmidt")
+      # @customer2 = Customer.create!(first_name: "Timmy", last_name: "Turner")
+      # @customer3 = Customer.create!(first_name: "Spongebob", last_name: "Squarepants")
+
+      # @invoice1 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped")
+      # @invoice2 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "returned")
+      # @invoice3 = Invoice.create!(customer_id: @customer2.id, merchant_id: @merchant2.id, status: "shipped")
+      # @invoice4 = Invoice.create!(customer_id: @customer3.id, merchant_id: @merchant2.id, status: "shipped")
+
       get "/api/v1/merchants/#{@merchant2.id}/customers"
       customers = JSON.parse(response.body, symbolize_names: true)
 
@@ -232,6 +247,15 @@ RSpec.describe "Merchants endpoints", type: :request do
 
   describe "can get list of invoices for a merchant based on status" do
     it "for shipped" do
+      # @customer1 = Customer.create!(first_name: "John J.", last_name: "Jingleheimerschmidt")
+      # @customer2 = Customer.create!(first_name: "Timmy", last_name: "Turner")
+      # @customer3 = Customer.create!(first_name: "Spongebob", last_name: "Squarepants")
+
+      # @invoice1 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped")
+      # @invoice2 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "returned")
+      # @invoice3 = Invoice.create!(customer_id: @customer2.id, merchant_id: @merchant2.id, status: "shipped")
+      # @invoice4 = Invoice.create!(customer_id: @customer3.id, merchant_id: @merchant2.id, status: "shipped")
+
       get "/api/v1/merchants/#{@merchant1.id}/invoices?status=shipped"
       invoices = JSON.parse(response.body, symbolize_names: true)
 
@@ -239,6 +263,15 @@ RSpec.describe "Merchants endpoints", type: :request do
     end
 
     it "for returned" do
+      # @customer1 = Customer.create!(first_name: "John J.", last_name: "Jingleheimerschmidt")
+      # @customer2 = Customer.create!(first_name: "Timmy", last_name: "Turner")
+      # @customer3 = Customer.create!(first_name: "Spongebob", last_name: "Squarepants")
+
+      # @invoice1 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped")
+      # @invoice2 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "returned")
+      # @invoice3 = Invoice.create!(customer_id: @customer2.id, merchant_id: @merchant2.id, status: "shipped")
+      # @invoice4 = Invoice.create!(customer_id: @customer3.id, merchant_id: @merchant2.id, status: "shipped")
+
       get "/api/v1/merchants/#{@merchant1.id}/invoices?status=returned"
       invoices = JSON.parse(response.body, symbolize_names: true)
 

@@ -39,7 +39,8 @@ class Api::V1::MerchantsController < ApplicationController
   end
 
   def destroy
-    render json: Merchant.delete(params[:id]), status: 204
+    #Changed delete() -> destroy() to properly trigger cascade deletions (this was hiding a while, argh!)
+    render json: Merchant.destroy(params[:id]), status: 204
   end
 
   private

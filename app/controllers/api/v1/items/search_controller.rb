@@ -4,7 +4,7 @@ class Api::V1::Items::SearchController < ApplicationController
 
   def find
     if params[:name].present? && (params[:min_price].present? || params[:max_price].present?)
-      return render json: { error: "Cannot send both name and price parameters" }, status: :unprocessable_entity
+      return render json: { error: "Cannot send both name and price" }, status: :unprocessable_entity
     end
 
     if params[:name].present?

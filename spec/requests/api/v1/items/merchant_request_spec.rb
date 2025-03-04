@@ -1,5 +1,4 @@
 require 'rails_helper'
-require 'rspec_helper'
 
 RSpec.describe "Merchant (of Item) endpoints", type: :request do
   

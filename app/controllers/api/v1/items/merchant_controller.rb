@@ -12,10 +12,6 @@ class Api::V1::Items::MerchantController < ApplicationController
   private
 
   def item_not_found(exception)
-    #Render appropriate JSON.  For now keep basic.  Later: pass more args (e.g. for 'message' key, etc.)?
-    render json: {
-      message: "Your request could not be completed.",
-      errors: [ { message: exception.message } ]
-    }, status: 404
+    render json: ErrorSerializer.handle_exception(exception, "Your request for returning merchant associated with item could not be completed"), status: :not_found
   end
 end

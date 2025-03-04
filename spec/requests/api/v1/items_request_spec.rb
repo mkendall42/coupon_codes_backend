@@ -18,6 +18,23 @@ RSpec.describe "Items endpoints", type: :request do
     @item4 = Item.create!(name: "can of ground peas", description: "mush", unit_price: 5, merchant_id: @merchant3[:id])
     @item5 = Item.create!(name: "cube", description: "not just any rectangular prism", unit_price: 8.00, merchant_id: @merchant4[:id])
     @item6 = Item.create!(name: "sphere", description: "now if only it were a cow", unit_price: 512.00, merchant_id: @merchant4[:id])
+
+    
+    #MAYBE DON'T NEED THESE?  JUST INVOICE ITEMS...
+    # Customer.destroy_all
+    @customer1 = Customer.create!(first_name: "John J.", last_name: "Jingleheimerschmidt")
+    @customer2 = Customer.create!(first_name: "Timmy", last_name: "Turner")
+    @customer3 = Customer.create!(first_name: "Spongebob", last_name: "Squarepants")
+    
+    # Invoice.destroy_all
+    @invoice1 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped")
+    @invoice2 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "returned")
+    @invoice3 = Invoice.create!(customer_id: @customer2.id, merchant_id: @merchant2.id, status: "shipped")
+    @invoice4 = Invoice.create!(customer_id: @customer3.id, merchant_id: @merchant2.id, status: "shipped")
+
+    @invoice_item1 = InvoiceItem.create!(item_id: @item1.id, invoice_id: @invoice1.id, quantity: 4, unit_price: 1.00)
+    @invoice_item2 = InvoiceItem.create!(item_id: @item1.id, invoice_id: @invoice2.id, quantity: 3, unit_price: 2.00)
+    @invoice_item3 = InvoiceItem.create!(item_id: @item2.id, invoice_id: @invoice3.id, quantity: 5, unit_price: 3.00)
   end
 
 
@@ -30,6 +47,12 @@ RSpec.describe "Items endpoints", type: :request do
       items = JSON.parse(response.body, symbolize_names: true)
 
       expect(items[:data].count).to eq(6)
+      expect(items[:data][0][:id]).to eq("#{@item1.id}")
+      expect(items[:data][0][:type]).to eq("item")
+      expect(items[:data][0][:attributes]).to be_a(Hash)
+      expect(items[:data][0][:attributes][:name]).to eq("Cat toy")
+      expect(items[:data][0][:attributes][:description]).to eq("wiggling fish")
+      expect(items[:data][0][:attributes][:unit_price]).to eq(0.34)
     end
 
     it 'can sort items by ascending price' do
@@ -52,14 +75,12 @@ RSpec.describe "Items endpoints", type: :request do
         name: "hypercube",
         description: "now with one additional dimension!",
         unit_price: 8.00 ** (4 / 3),     #Hyuk hyuk
-        merchant_id: @merchant4.id      #Alt: could assign to different merchant, then check
+        merchant_id: @merchant4.id
       }
 
       headers = {"CONTENT_TYPE" => "application/json"}
       patch "/api/v1/items/#{@item5.id}", headers: headers, params: JSON.generate(updated_item_attributes)
       
-      #Asseration(s) - test the response JSON text, AND that the record is updated in the DB
-      #NOTE: WEIRD - @merchant1 persists in memory even after DB is changed (and it's not in DB anymore)...is this b/c it's @ ?
       updated_item = Item.find_by(id: @item5.id)
 
       expect(response).to be_successful
@@ -96,8 +117,6 @@ RSpec.describe "Items endpoints", type: :request do
       headers = {"CONTENT_TYPE" => "application/json"}
       patch "/api/v1/items/#{@item6.id}", headers: headers, params: JSON.generate(updated_item_attributes)
       
-      #Asseration(s) - test the response JSON text, AND that the record is updated in the DB
-      #NOTE: WEIRD - @merchant1 persists in memory even after DB is changes (and it's not in DB anymore)...is this b/c it's @ ?
       updated_item = Item.find_by(id: @item6.id)
       
       expect(response).to be_successful
@@ -144,9 +163,8 @@ RSpec.describe "Items endpoints", type: :request do
       patch "/api/v1/items/#{previous_item.id}", headers: headers, params: JSON.generate(empty_attributes)
 
       updated_item = Item.find_by(id: previous_item.id)
-      
+
       expect(response).to_not be_successful
-      expect(response.status).to eq(400)
       #Refactor later into common method (:let?)
       expect(updated_item.name).to eq(previous_item.name)
       expect(updated_item.description).to eq(previous_item.description)
@@ -156,7 +174,12 @@ RSpec.describe "Items endpoints", type: :request do
       expect(updated_item.updated_at).to eq(previous_item.updated_at)
     end
 
-    it "sends appropriate 400 level error when no id found" do
+    it "sad path: fails validation when invalid data passed" do
+      #UPDATE
+      #Not sure if I need to implement this, but e.g. shouldn't have blank name
+    end
+
+    it "sad path: sends appropriate 400 level error when no id found" do
       invalid_id = 100000
       updated_item_attributes = {
         name: "hypercube",
@@ -167,19 +190,16 @@ RSpec.describe "Items endpoints", type: :request do
 
       headers = {"CONTENT_TYPE" => "application/json"}
       patch "/api/v1/items/#{invalid_id}", headers: headers, params: JSON.generate(updated_item_attributes)
+      error_message = JSON.parse(response.body, symbolize_names: true)
       
-      # binding.pry
-      
-      expect{ Item.find(invalid_id) }.to raise_error(ActiveRecord::RecordNotFound)
       expect(response).to_not be_successful
+      expect(error_message[:message]).to eq("Item not found")
+      expect(error_message[:errors]).to eq(["Couldn't find Item with 'id'=#{invalid_id}"])
     end
-
-    #NOTE FOR LATER: may need to check response body (depending on 400-level code)
-
   end
 
 
-  describe "show a single item" do
+  describe "#show (single item)" do
     it "brings up specfic item based on id" do
       
       item = Item.create!(name: "New Item", description: "description", unit_price: 100.00, merchant_id: @merchant1.id)
@@ -194,23 +214,19 @@ RSpec.describe "Items endpoints", type: :request do
       expect(json[:data][:attributes][:description]).to eq("description")
       expect(json[:data][:attributes][:unit_price]).to eq(100.00)
     end
-  end
 
-  describe "show item error" do
-    it "returns json error message if params not met" do
+    it "sad path: returns json error message if params not met" do
     
       get "/api/v1/items/999"
-
       json = JSON.parse(response.body, symbolize_names: true)
 
-      expect(response).to have_http_status(:not_found)
-      expect(json[:errors]).to eq("Item not found")
+      expect(json[:message]).to eq("Item not found")
+      expect(json[:errors]).to eq(["Couldn't find Item with 'id'=999"])
     end
   end
 
   describe "create item" do
     it "will create a new item based on json" do
-
       
       new_item = {
         name: "New Item",
@@ -235,11 +251,38 @@ RSpec.describe "Items endpoints", type: :request do
   
     it "will return an error if the required parameters are missing" do
       post "/api/v1/items", params: {}, headers: { "CONTENT_TYPE" => "application/json" }
-  
       json = JSON.parse(response.body, symbolize_names: true)
   
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(json[:error]).to eq("Item was not created")
+      expect(json[:message]).to eq("Item was not created")
+      expect(json[:errors]).to eq(["param is missing or the value is empty: item"])
+    end
+
+    it "sad path: returns appropriate error message if subset of parameters are missing (2 examples)" do
+      new_incomplete_item = {
+        name: "New Item",
+        description: "description",
+        # unit_price: 20.00,
+        merchant_id: @merchant1.id
+      }
+
+      headers = { "CONTENT_TYPE" => "application/json" }
+      post "/api/v1/items", headers: headers, params: JSON.generate(item: new_incomplete_item)
+      response_message = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response_message[:message]).to eq("Item was not created")
+      expect(response_message[:errors]).to eq(["Validation failed: Unit price can't be blank"])
+
+      another_incomplete_item = { merchant_id: @merchant1.id }
+
+      headers = { "CONTENT_TYPE" => "application/json" }
+      post "/api/v1/items", headers: headers, params: JSON.generate(item: another_incomplete_item)
+      response_message = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response_message[:message]).to eq("Item was not created")
+      expect(response_message[:errors]).to eq(["Validation failed: Name can't be blank, Description can't be blank, Unit price can't be blank"])
     end
   end
 
@@ -249,6 +292,7 @@ RSpec.describe "Items endpoints", type: :request do
       expect(Item.count).to eq(6)
       delete "/api/v1/items/#{item_to_delete}"
       expect(response).to be_successful
+      expect(response.status).to eq(204)
       expect(Item.count).to eq(5)
       expect{ Item.find(item_to_delete) }.to raise_error(ActiveRecord::RecordNotFound)
     end
@@ -256,23 +300,25 @@ RSpec.describe "Items endpoints", type: :request do
     it "deletes all invoice_items associated with a deleted item" do
       item_to_delete = @item1.id
       expect(Item.count).to eq(6)
+
+      #Update - this now accounts for actual invoice items getting deleted
       delete "/api/v1/items/#{item_to_delete}"
+
       expect(response).to be_successful
       expect(Item.count).to eq(5)
-      expect(InvoiceItem.count).to eq(@item1.invoice_items.count)
-      expect{ Item.find(item_to_delete) }.to raise_error(ActiveRecord::RecordNotFound)
-      expect(InvoiceItem.count).to eq(@item1.invoice_items.count - @item1.invoice_items.count)
+      expect(InvoiceItem.count).to eq(@item2.invoice_items.count)
       expect(InvoiceItem.where(item_id: item_to_delete).count).to eq(0)
     end
 
-    it 'sends appropriate 204 status code when item is deleted' do
-      item_to_delete = @item1.id
-      delete "/api/v1/items/#{item_to_delete}"
-      expect(response).to be_successful
-      expect(response.status).to eq(204)
-      expect{ Item.find(item_to_delete) }.to raise_error(ActiveRecord::RecordNotFound)
+    it 'sad path: sends appropriate error if no item found to delete"sends appropriate 204 status code when item is deleted' do
+      nonexistant_id = 100000
+
+      delete "/api/v1/items/#{nonexistant_id}"
+      error_message = JSON.parse(response.body, symbolize_names: true)
+
+      expect(error_message[:message]).to eq("Item not found")
+      expect(error_message[:errors]).to eq(["Couldn't find Item with 'id'=#{nonexistant_id}"])   
     end
   end
-
 
 end

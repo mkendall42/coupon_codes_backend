@@ -45,9 +45,9 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
       expect(response).to_not be_successful
       expect(response.status).to eq(404)
       #Related: could I group some of these (DRY)?  I suspect so...
-      expect(error_message[:message]).to eq("Your request for returning merchant associated with item could not be completed")
-      expect(error_message[:errors]).to be_a(Array)
-      expect(error_message[:errors][0]).to eq("Couldn't find Item with 'id'=#{nonexistant_id}")
+      expect(error_message[:data][:message]).to eq("Your request for returning merchant associated with item could not be completed")
+      expect(error_message[:data][:errors]).to be_a(Array)
+      expect(error_message[:data][:errors][0]).to eq("Couldn't find Item with 'id'=#{nonexistant_id}")
 
     end
 
@@ -60,9 +60,9 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
       expect(response).to_not be_successful
       expect(response.status).to eq(404)
       #Related: could I group some of these (DRY)?  I suspect so...
-      expect(error_message[:message]).to eq("Your request for returning merchant associated with item could not be completed")
-      expect(error_message[:errors]).to be_a(Array)
-      expect(error_message[:errors][0]).to eq("Couldn't find Item with 'id'=#{@item7.id}")
+      expect(error_message[:data][:message]).to eq("Your request for returning merchant associated with item could not be completed")
+      expect(error_message[:data][:errors]).to be_a(Array)
+      expect(error_message[:data][:errors][0]).to eq("Couldn't find Item with 'id'=#{@item7.id}")
     end
   end
 

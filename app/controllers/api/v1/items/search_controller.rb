@@ -5,7 +5,7 @@ class Api::V1::Items::SearchController < ApplicationController
   def find
     if params[:name].present? && (params[:min_price].present? || params[:max_price].present?)
       #UPDATE
-      return render json: ErrorSerializer.search_parameters_error("Cannot send both name and price parameters"), status: :unprocessable_entity
+      return render json: ErrorSerializer.search_parameters_error("Cannot send both name and price parameters"), status: 400
       # return render json: { error: "Cannot send both name and price" }, status: :unprocessable_entity
     end
 
@@ -22,7 +22,11 @@ class Api::V1::Items::SearchController < ApplicationController
     elsif params[:min_price].present? || params[:max_price].present?
       # min_price = params[:min_price].to_f if params[:min_price].present?
       # max_price = params[:max_price].to_f if params[:max_price].present?
-
+      if params[:min_price].to_f < 0 || params[:max_price].to_f < 0
+        render json: { errors: "Min/max issue" }, status: 400
+        # ErrorSerializer.search_parameters_error("Min/max price value(s) canonot be negative"), status: 400
+        return
+      end
       #Move these lines into model method!
       item = Item.find_by_price_range(params[:min_price], params[:max_price])
 

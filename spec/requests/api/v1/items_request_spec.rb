@@ -193,8 +193,8 @@ RSpec.describe "Items endpoints", type: :request do
       error_message = JSON.parse(response.body, symbolize_names: true)
       
       expect(response).to_not be_successful
-      expect(error_message[:message]).to eq("Item not found")
-      expect(error_message[:errors]).to eq(["Couldn't find Item with 'id'=#{invalid_id}"])
+      expect(error_message[:data][:message]).to eq("Item not found")
+      expect(error_message[:data][:errors]).to eq(["Couldn't find Item with 'id'=#{invalid_id}"])
     end
   end
 
@@ -220,8 +220,8 @@ RSpec.describe "Items endpoints", type: :request do
       get "/api/v1/items/999"
       json = JSON.parse(response.body, symbolize_names: true)
 
-      expect(json[:message]).to eq("Item not found")
-      expect(json[:errors]).to eq(["Couldn't find Item with 'id'=999"])
+      expect(json[:data][:message]).to eq("Item not found")
+      expect(json[:data][:errors]).to eq(["Couldn't find Item with 'id'=999"])
     end
   end
 
@@ -254,8 +254,8 @@ RSpec.describe "Items endpoints", type: :request do
       json = JSON.parse(response.body, symbolize_names: true)
   
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(json[:message]).to eq("Item was not created")
-      expect(json[:errors]).to eq(["param is missing or the value is empty: item"])
+      expect(json[:data][:message]).to eq("Item was not created")
+      expect(json[:data][:errors]).to eq(["param is missing or the value is empty: item"])
     end
 
     it "sad path: returns appropriate error message if subset of parameters are missing (2 examples)" do
@@ -271,8 +271,8 @@ RSpec.describe "Items endpoints", type: :request do
       response_message = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(response_message[:message]).to eq("Item was not created")
-      expect(response_message[:errors]).to eq(["Validation failed: Unit price can't be blank"])
+      expect(response_message[:data][:message]).to eq("Item was not created")
+      expect(response_message[:data][:errors]).to eq(["Validation failed: Unit price can't be blank"])
 
       another_incomplete_item = { merchant_id: @merchant1.id }
 
@@ -281,8 +281,8 @@ RSpec.describe "Items endpoints", type: :request do
       response_message = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(response_message[:message]).to eq("Item was not created")
-      expect(response_message[:errors]).to eq(["Validation failed: Name can't be blank, Description can't be blank, Unit price can't be blank"])
+      expect(response_message[:data][:message]).to eq("Item was not created")
+      expect(response_message[:data][:errors]).to eq(["Validation failed: Name can't be blank, Description can't be blank, Unit price can't be blank"])
     end
   end
 
@@ -316,8 +316,8 @@ RSpec.describe "Items endpoints", type: :request do
       delete "/api/v1/items/#{nonexistant_id}"
       error_message = JSON.parse(response.body, symbolize_names: true)
 
-      expect(error_message[:message]).to eq("Item not found")
-      expect(error_message[:errors]).to eq(["Couldn't find Item with 'id'=#{nonexistant_id}"])   
+      expect(error_message[:data][:message]).to eq("Item not found")
+      expect(error_message[:data][:errors]).to eq(["Couldn't find Item with 'id'=#{nonexistant_id}"])   
     end
   end
 

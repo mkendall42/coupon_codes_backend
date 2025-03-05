@@ -32,7 +32,7 @@ RSpec.describe Api::V1::Merchants::SearchController, type: :controller do
       get :find_all, params: { name: '' }
 
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(JSON.parse(response.body)["errors"]).to eq(["Parameter 'name' cannot be empty"])
+      expect(JSON.parse(response.body)["data"]["errors"]).to eq(["Parameter 'name' cannot be empty"])
     end
   end
 end

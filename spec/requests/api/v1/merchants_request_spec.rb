@@ -133,8 +133,8 @@ RSpec.describe "Merchants endpoints", type: :request do
 
       expect(response).to_not be_successful
       expect(response.status).to eq(404)
-      expect(error_message[:message]).to eq("Merchant not found")
-      expect(error_message[:errors]).to eq(["Couldn't find Merchant with 'id'=#{nonexistant_id}"])
+      expect(error_message[:data][:message]).to eq("Merchant not found")
+      expect(error_message[:data][:errors]).to eq(["Couldn't find Merchant with 'id'=#{nonexistant_id}"])
     end
   end
 
@@ -187,9 +187,9 @@ RSpec.describe "Merchants endpoints", type: :request do
 
       expect(response).to have_http_status(:not_found)
       json = JSON.parse(response.body, symbolize_names: true)
-      expect(json[:message]).to eq("Merchant not found")
-      expect(json[:errors]).to be_a(Array)
-      expect(json[:errors][0]).to eq("Couldn't find Merchant with 'id'=1000")
+      expect(json[:data][:message]).to eq("Merchant not found")
+      expect(json[:data][:errors]).to be_a(Array)
+      expect(json[:data][:errors][0]).to eq("Couldn't find Merchant with 'id'=1000")
     end
   end
 
@@ -243,16 +243,22 @@ RSpec.describe "Merchants endpoints", type: :request do
       expect(invoices[:data].first[:attributes][:status]).to eq("returned")
     end
 
-    it "sad path: error if query other than 'status' is sent" do
-      get "/api/v1/merchants/#{@merchant3.id}/invoices?customer_id=12345"
+    it "returns all invoices if query other than 'status' is sent" do
+      get "/api/v1/merchants/#{@merchant2.id}/invoices?customer_id=12345"
+      invoices_data = JSON.parse(response.body, symbolize_names: true)
 
-      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).to eq(["Only valid query parameter is 'status='"])
+      expect(response).to be_successful
+      expect(invoices_data[:data].length).to eq(2)
+      expect(invoices_data[:data][0][:attributes][:merchant_id]).to eq(@merchant2.id)
+      expect(invoices_data[:data][1][:attributes][:merchant_id]).to eq(@merchant2.id)
     end
 
     it "sad path: error if query value other than 'returned/shipped/packaged' sent" do
-      get "/api/v1/merchants/#{@merchant3.id}/invoices?status=indeterminate"
+      get "/api/v1/merchants/#{@merchant2.id}/invoices?status=indeterminate"
 
-      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).to eq(["Only valid values for 'status' query are 'returned', 'shipped', or 'packaged'"])
+      # binding.pry
+
+      expect(JSON.parse(response.body, symbolize_names: true)[:data][:errors]).to eq(["Only valid values for 'status' query are 'returned', 'shipped', or 'packaged'"])
     end
   end
 end

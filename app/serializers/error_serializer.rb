@@ -10,22 +10,28 @@ class ErrorSerializer
     end
 
     {
-      message: custom_message,
-      errors: errors_array
+      data: {
+        message: custom_message,
+        errors: errors_array
+      }
     }
   end
 
   def self.search_parameters_error(message)
     {
-      message: "Parameter(s) error",
-      errors: [message]
+      data: {  
+        message: "Parameter(s) error",
+        errors: [message]
+      }
     }
   end
 
   def self.no_item_matched(message)
     {
-      message: "Item not found",
-      errors: [message]
+      data: {
+        message: "Item not found",
+        errors: [message]
+      }
     }
   end
 

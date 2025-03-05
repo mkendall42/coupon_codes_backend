@@ -25,7 +25,7 @@ RSpec.describe Api::V1::Items::SearchController, type: :controller do
       get :find, params: { name: 'bruh' }
 
       expect(response).to have_http_status(:not_found)
-      expect(JSON.parse(response.body)["errors"]).to eq(["No item exists with name containing search string"])
+      expect(JSON.parse(response.body)["data"]["errors"]).to eq(["No item exists with name containing search string"])
     end
 
     it 'returns an error if both name and price' do
@@ -33,8 +33,8 @@ RSpec.describe Api::V1::Items::SearchController, type: :controller do
 
       # binding.pry
 
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(JSON.parse(response.body)["errors"]).to eq(['Cannot send both name and price parameters'])
+      expect(response).to have_http_status(:bad_request)
+      expect(JSON.parse(response.body)["data"]["errors"]).to eq(['Cannot send both name and price parameters'])
     end
 
     context 'when searching by min_price' do
@@ -51,14 +51,14 @@ RSpec.describe Api::V1::Items::SearchController, type: :controller do
         # binding.pry
 
         expect(response).to have_http_status(:not_found)
-        expect(JSON.parse(response.body)["errors"]).to eq(["No item exists within specified price range"])
+        expect(JSON.parse(response.body)["data"]["errors"]).to eq(["No item exists within specified price range"])
       end
 
       it 'returns an error if both name and min_price are provided' do
         get :find, params: { name: 'ring', min_price: 20 }
 
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["errors"]).to eq(['Cannot send both name and price parameters'])
+        expect(response).to have_http_status(:bad_request)
+        expect(JSON.parse(response.body)["data"]["errors"]).to eq(['Cannot send both name and price parameters'])
       end
     end
 
@@ -74,14 +74,14 @@ RSpec.describe Api::V1::Items::SearchController, type: :controller do
         get :find, params: { max_price: 0.1 }
 
         expect(response).to have_http_status(:not_found)
-        expect(JSON.parse(response.body)["errors"]).to eq(["No item exists within specified price range"])
+        expect(JSON.parse(response.body)["data"]["errors"]).to eq(["No item exists within specified price range"])
       end
 
       it 'returns an error if both name and max_price are provided' do
         get :find, params: { name: 'ring', max_price: 20 }
 
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["errors"]).to eq(['Cannot send both name and price parameters'])
+        expect(response).to have_http_status(:bad_request)
+        expect(JSON.parse(response.body)["data"]["errors"]).to eq(['Cannot send both name and price parameters'])
       end
     end
 
@@ -108,8 +108,8 @@ RSpec.describe Api::V1::Items::SearchController, type: :controller do
         response_message = JSON.parse(response.body, symbolize_names: true)
 
         expect(response).to_not be_successful
-        expect(response_message[:message]).to eq("Item not found")
-        expect(response_message[:errors]).to eq(["Cannot have max_price less than min_price"])
+        expect(response_message[:data][:message]).to eq("Item not found")
+        expect(response_message[:data][:errors]).to eq(["Cannot have max_price less than min_price"])
       end
     end
 
@@ -118,7 +118,7 @@ RSpec.describe Api::V1::Items::SearchController, type: :controller do
         get :find
 
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["errors"]).to eq(["Parameter 'name' or 'min_price/max_price' must be provided"])
+        expect(JSON.parse(response.body)["data"]["errors"]).to eq(["Parameter 'name' or 'min_price/max_price' must be provided"])
       end
     end
   end

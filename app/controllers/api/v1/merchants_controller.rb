@@ -2,10 +2,6 @@ class Api::V1::MerchantsController < ApplicationController
   rescue_from ActiveRecord::RecordNotFound, with: :merchant_not_found
   rescue_from ActionController::ParameterMissing, with: :parameter_missing_error
 
-  #Things to do:
-  #1. Check the update action (and use update!())
-  #2. Decide on exact error handling.  Do this with exception handler methods, or custom serializers?
-
   def index
     if params[:sorted] == "age"
       merchants = Merchant.sorted_by_age
@@ -56,10 +52,13 @@ class Api::V1::MerchantsController < ApplicationController
   end
 
   def parameter_missing_error(exception)
-    #NEEDS UPDATING
-    #NOTE: do we actually need this / does anything use it?
-    render json: ErrorSerializer.handle_exception(exception, "Merchant was not created"), status: :unprocessable_entity
-    # render json: { error: "Merchant was not created" }, status: :unprocessable_entity
+    #The following first render line is hacky, but is specifically to keep our DRY code intact while adhering to the exact expectations of the Postman script tests
+    #(Here they expect a body with only message and errors keys, while typically they expect a parent data key - hence the implementation in ErrorSerializer)
+    if exception.message == "param is missing or the value is empty: merchant"
+      render json: { message: "Merchant was not created", errors: ["param is missing or the value is empty: merchant"]}, status: :unprocessable_entity
+    else
+      render json: ErrorSerializer.handle_exception(exception, "Merchant was not created"), status: :unprocessable_entity
+    end
   end
 
 end

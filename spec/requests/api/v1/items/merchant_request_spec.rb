@@ -8,6 +8,7 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
     @merchant2 = Merchant.create!(name: "Mark")
     @merchant3 = Merchant.create!(name: "Jackson")
     @merchant4 = Merchant.create!(name: "Jason")
+    @merchant5 = Merchant.create!(name: "Ghen")   #Props if you know the reference
     
     Item.destroy_all
     @item1 = Item.create!(name: "Cat toy", description: "wiggling fish", unit_price: 0.34, merchant_id: @merchant1[:id])
@@ -16,7 +17,7 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
     @item4 = Item.create!(name: "can of ground peas", description: "mush", unit_price: 5, merchant_id: @merchant3[:id])
     @item5 = Item.create!(name: "cube", description: "not just any rectangular prism", unit_price: 8.00, merchant_id: @merchant4[:id])
     @item6 = Item.create!(name: "sphere", description: "now if only it were a cow", unit_price: 512.00, merchant_id: @merchant4[:id])
-    # @item7 = Item.create!(name: "an unassuming book", description: "actually connects to Riven", unit_price: 1996.00, merchant_id: @merchant2[:id])   #For potential sad path logic
+    @item7 = Item.create!(name: "an unassuming book", description: "says something about 'Riven'", unit_price: 1996.00, merchant_id: @merchant5[:id])
   end
 
   describe "#index tests" do
@@ -50,18 +51,18 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
 
     end
 
-    xit "sad path: item has no associated merchant" do
-      #NOTE: disabled test for now - probably not needed, may delete later (can also delete @item7 in this case).
-      #This is harder to test; creating an item requires merchant_id, and DB protects against deleting associated merchant
+    it "if associated merchant disappears, item is deleted (and thus cannot be accessed)" do
+      Merchant.destroy(@merchant5.id)
 
-      # get "/api/v1/items/#{@item7.id}/merchant"
+      get "/api/v1/items/#{@item7.id}/merchant"
+      error_message = JSON.parse(response.body, symbolize_names: true)
 
-      # expect(response).to_not be_successful
-      # expect(response.status).to eq(404)
-      # #Related: could I group some of these (DRY)?  I suspect so...
-      # expect(error_message[:message]).to eq("Your request could not be completed.")
-      # expect(error_message[:errors]).to be_a(Array)
-      # expect(error_message[:errors].first[:message]).to eq("Couldn't find Merchant with 'id'=#{nonexistant_id}")
+      expect(response).to_not be_successful
+      expect(response.status).to eq(404)
+      #Related: could I group some of these (DRY)?  I suspect so...
+      expect(error_message[:message]).to eq("Your request for returning merchant associated with item could not be completed")
+      expect(error_message[:errors]).to be_a(Array)
+      expect(error_message[:errors][0]).to eq("Couldn't find Item with 'id'=#{@item7.id}")
     end
   end
 

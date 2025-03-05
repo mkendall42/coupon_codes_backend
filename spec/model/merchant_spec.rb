@@ -1,5 +1,4 @@
 require 'rails_helper'
-require 'rspec_helper'
 
 RSpec.describe Merchant, type: :model do
 
@@ -42,4 +41,25 @@ RSpec.describe Merchant, type: :model do
       expect(@merchant1.item_count).to eq(2)
     end
   end
+
+  describe ".find_by_name_string" do
+    it "correctly finds all merchants with name containing substring, sorted alphabetically by name" do
+      search_string = "son"
+
+      expect(Merchant.find_by_name_string(search_string)).to eq([@merchant3, @merchant4])
+    end
+
+    it "correctly works in case-insensitive manner" do
+      search_string = "Ar"
+
+      expect(Merchant.find_by_name_string(search_string)).to eq([@merchant1, @merchant2])
+    end
+
+    it "returns empty array for nonexistant substring in merchants" do
+      search_string = "Batman"
+
+      expect(Merchant.find_by_name_string(search_string)).to eq([])
+    end
+  end
+
 end

@@ -30,6 +30,7 @@ RSpec.describe Merchant, type: :model do
       invoice2 = @merchant2.invoices.create!(status: "completed", customer: customer2)
   
       expect(Merchant.has_returned_items).to eq([@merchant1])
+      expect(@merchant1.invoices[0].status).to eq('returned')
     end
   end
 

@@ -28,13 +28,12 @@ RSpec.describe Api::V1::Merchants::SearchController, type: :controller do
       expect(JSON.parse(response.body)['data']).to eq([])
     end
 
-    it 'returns an error if the name parameter is empty' do
+    it 'sad path: returns an error if the name parameter is empty' do
       get :find_all, params: { name: '' }
 
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(JSON.parse(response.body)['error']).to eq("Parameter 'name' cannot be empty")
+      expect(JSON.parse(response.body)["errors"]).to eq(["Parameter 'name' cannot be empty"])
     end
   end
 end
-
     

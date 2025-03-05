@@ -30,9 +30,6 @@ RSpec.describe Api::V1::Items::SearchController, type: :controller do
 
     it 'returns an error if both name and price' do
       get :find, params: { name: 'ring', min_price: 20 }
-
-      # binding.pry
-
       expect(response).to have_http_status(:bad_request)
       expect(JSON.parse(response.body)["data"]["errors"]).to eq(['Cannot send both name and price parameters'])
     end
@@ -47,9 +44,6 @@ RSpec.describe Api::V1::Items::SearchController, type: :controller do
 
       it 'returns an error if no items match the min_price' do
         get :find, params: { min_price: 1000 }
-
-        # binding.pry
-
         expect(response).to have_http_status(:not_found)
         expect(JSON.parse(response.body)["data"]["errors"]).to eq(["No item exists within specified price range"])
       end

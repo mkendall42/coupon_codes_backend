@@ -48,7 +48,6 @@ RSpec.describe "Items (of Merchant) endpoints", type: :request do
 
       expect(response).to_not be_successful
       expect(response.status).to eq(404)
-      #Related: could I group some of these (DRY)?  I suspect so...
       expect(error_message[:data][:message]).to eq("Your request for returning items associated with merchant could not be completed")
       expect(error_message[:data][:errors]).to be_a(Array)
       expect(error_message[:data][:errors][0]).to eq("Couldn't find Merchant with 'id'=#{nonexistant_id}")

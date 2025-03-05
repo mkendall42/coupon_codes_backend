@@ -19,14 +19,11 @@ RSpec.describe "Items endpoints", type: :request do
     @item5 = Item.create!(name: "cube", description: "not just any rectangular prism", unit_price: 8.00, merchant_id: @merchant4[:id])
     @item6 = Item.create!(name: "sphere", description: "now if only it were a cow", unit_price: 512.00, merchant_id: @merchant4[:id])
 
-    
-    #MAYBE DON'T NEED THESE?  JUST INVOICE ITEMS...
-    # Customer.destroy_all
+  
     @customer1 = Customer.create!(first_name: "John J.", last_name: "Jingleheimerschmidt")
     @customer2 = Customer.create!(first_name: "Timmy", last_name: "Turner")
     @customer3 = Customer.create!(first_name: "Spongebob", last_name: "Squarepants")
     
-    # Invoice.destroy_all
     @invoice1 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped")
     @invoice2 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "returned")
     @invoice3 = Invoice.create!(customer_id: @customer2.id, merchant_id: @merchant2.id, status: "shipped")
@@ -124,8 +121,6 @@ RSpec.describe "Items endpoints", type: :request do
       expect(updated_item.description).to eq(previous_item.description)
       expect(updated_item.unit_price).to eq(updated_item_attributes[:unit_price])
       expect(updated_item.merchant_id).to eq(previous_item.merchant_id)
-
-      #Probably don't need to check JSON data again...
     end
 
     it "correctly ignore invalid attributes in updating" do
@@ -143,10 +138,6 @@ RSpec.describe "Items endpoints", type: :request do
       updated_item = Item.find_by(id: previous_item.id)
 
       expect(response).to be_successful
-      #PROBLEM: the below commented line will pass even if attribute(s) are different
-      # expect(updated_item).to eq(previous_item)   #The entire object should be identical (no changes)
-      
-      #Refactor later into common method?
       expect(updated_item.name).to eq(previous_item.name)
       expect(updated_item.description).to eq(previous_item.description)
       expect(updated_item.unit_price).to eq(previous_item.unit_price)
@@ -165,18 +156,12 @@ RSpec.describe "Items endpoints", type: :request do
       updated_item = Item.find_by(id: previous_item.id)
 
       expect(response).to_not be_successful
-      #Refactor later into common method (:let?)
       expect(updated_item.name).to eq(previous_item.name)
       expect(updated_item.description).to eq(previous_item.description)
       expect(updated_item.unit_price).to eq(previous_item.unit_price)
       expect(updated_item.merchant_id).to eq(previous_item.merchant_id)
       expect(updated_item.created_at).to eq(previous_item.created_at)
       expect(updated_item.updated_at).to eq(previous_item.updated_at)
-    end
-
-    it "sad path: fails validation when invalid data passed" do
-      #UPDATE
-      #Not sure if I need to implement this, but e.g. shouldn't have blank name
     end
 
     it "sad path: sends appropriate 400 level error when no id found" do
@@ -262,7 +247,6 @@ RSpec.describe "Items endpoints", type: :request do
       new_incomplete_item = {
         name: "New Item",
         description: "description",
-        # unit_price: 20.00,
         merchant_id: @merchant1.id
       }
 
@@ -301,7 +285,6 @@ RSpec.describe "Items endpoints", type: :request do
       item_to_delete = @item1.id
       expect(Item.count).to eq(6)
 
-      #Update - this now accounts for actual invoice items getting deleted
       delete "/api/v1/items/#{item_to_delete}"
 
       expect(response).to be_successful

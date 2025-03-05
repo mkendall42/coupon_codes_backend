@@ -10,18 +10,18 @@ describe Invoice, type: :model do
 
   describe "filter by status(status)" do
     before(:each) do
-      # Merchant.destroy_all
+      
       @merchant1 = Merchant.create!(name: "Barbara")
       @merchant2 = Merchant.create!(name: "Mark")
       @merchant3 = Merchant.create!(name: "Jackson")
       @merchant4 = Merchant.create!(name: "Jason")
   
-      # Customer.destroy_all
+     
       @customer1 = Customer.create!(first_name: "John J.", last_name: "Jingleheimerschmidt")
       @customer2 = Customer.create!(first_name: "Timmy", last_name: "Turner")
       @customer3 = Customer.create!(first_name: "Spongebob", last_name: "Squarepants")
   
-      # Invoice.destroy_all
+      
       @invoice1 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped")
       @invoice2 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "returned")
       @invoice3 = Invoice.create!(customer_id: @customer2.id, merchant_id: @merchant2.id, status: "shipped")

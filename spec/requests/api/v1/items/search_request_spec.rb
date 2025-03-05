@@ -86,11 +86,21 @@ RSpec.describe Api::V1::Items::SearchController, type: :controller do
     end
 
     context 'when searching by both min_price and max_price' do
-      it 'returns the first item with a price within the range' do
+      it 'returns the first item with a price within the range (3 examples)' do
         get :find, params: { min_price: 20, max_price: 30 }
 
         expect(response).to have_http_status(:success)
         expect(JSON.parse(response.body)['data']['attributes']['name']).to eq('orange cream soda')
+
+        get :find, params: { max_price: 15 }
+
+        expect(response).to have_http_status(:success)
+        expect(JSON.parse(response.body)['data']['attributes']['name']).to eq('Ring World')
+
+        get :find, params: { min_price: 25 }
+
+        expect(response).to have_http_status(:success)
+        expect(JSON.parse(response.body)['data']['attributes']['name']).to eq('root beer')
       end
     end
 

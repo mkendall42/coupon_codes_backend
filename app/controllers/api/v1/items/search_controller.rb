@@ -11,7 +11,8 @@ class Api::V1::Items::SearchController < ApplicationController
 
     if params[:name].present?
       #UPDATE - potential MVC infraction
-      item = Item.where("name ILIKE ?", "%#{params[:name]}%").order(:name).first
+      item = Item.find_by_name_string(params[:name])
+      # item = Item.where("name ILIKE ?", "%#{params[:name]}%").order(:name).first
       if item
         render json: ItemSerializer.new(item)
       else
@@ -19,14 +20,16 @@ class Api::V1::Items::SearchController < ApplicationController
       end
 
     elsif params[:min_price].present? || params[:max_price].present?
-      min_price = params[:min_price].to_f if params[:min_price].present?
-      max_price = params[:max_price].to_f if params[:max_price].present?
+      # min_price = params[:min_price].to_f if params[:min_price].present?
+      # max_price = params[:max_price].to_f if params[:max_price].present?
 
       #Move these lines into model method!
-      items = Item.all
-      items = items.where("unit_price >= ?", min_price) if min_price
-      items = items.where("unit_price <= ?", max_price) if max_price
-      item = items.order(:name).first
+      item = Item.find_by_price_range(params[:min_price], params[:max_price])
+
+      # items = Item.all
+      # items = items.where("unit_price >= ?", min_price) if min_price
+      # items = items.where("unit_price <= ?", max_price) if max_price
+      # item = items.order(:name).first
 
       #IMPORTANT: check for max < min 
 

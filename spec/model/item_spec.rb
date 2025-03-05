@@ -1,5 +1,4 @@
 require 'rails_helper'
-require 'rspec_helper'
 
 RSpec.describe Item, type: :model do
 
@@ -31,4 +30,60 @@ RSpec.describe Item, type: :model do
       expect(Item.sorted_by_price).to eq(expected_order)
     end
   end
+
+  describe ".find_by_name_string" do
+    it "finds first item (alphabetically by name) containing substring" do
+      string_to_search = "ea"
+
+      expect(Item.find_by_name_string(string_to_search)).to eq(@item4)
+    end
+
+    it "works correctly in case-insensitive manner" do
+      string_to_search = "eA"
+
+      expect(Item.find_by_name_string(string_to_search)).to eq(@item4)
+    end
+
+    it "nonexistant substring returns nil" do
+      string_to_search = "Scandium"
+
+      expect(Item.find_by_name_string(string_to_search)).to eq(nil)
+    end
+  end
+
+
+  describe ".find_by_price_range" do
+    #NOTE: these do not check if max < min, or min || max < 0;
+    #That is done in the conroller for error handling
+    it "finds correct item (first one, alphabetically) given legal mix, max price range (2 examples)" do
+      min_price_A = 2.25
+      max_price_A = 291
+
+      found_item_A = Item.find_by_price_range(min_price_A, max_price_A)
+      expect(found_item_A).to eq(@item4)
+
+      min_price_B = 1.00
+      max_price_B = 3.14
+
+      found_item_B = Item.find_by_price_range(min_price_B, max_price_B)
+      expect(found_item_B).to eq(@item2)
+    end
+
+    it "finds correct items with only min specified" do
+      min_price = 8.99
+      max_price = nil
+
+      found_item = Item.find_by_price_range(min_price, max_price)
+      expect(found_item).to eq(@item6)
+    end
+
+    it "finds correct items with only max specified" do
+      min_price = nil
+      max_price = 5.55
+
+      found_item = Item.find_by_price_range(min_price, max_price)
+      expect(found_item).to eq(@item1)
+    end
+  end
+
 end

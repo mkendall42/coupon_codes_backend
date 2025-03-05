@@ -18,4 +18,18 @@ class ErrorSerializer
     }
   end
 
+  def self.search_parameters_error(message)
+    {
+      message: "Parameter(s) error",
+      errors: [message]
+    }
+  end
+
+  def self.no_item_matched(message)
+    {
+      message: "Item not found",
+      errors: [message]
+    }
+  end
+
 end

@@ -22,7 +22,6 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
 
   describe "#index tests" do
     it "happy path: returns merchant belonging to specified item (two examples)" do
-      #Make an enumerable here to try both examples quickly (for kicks):
       testing_sequence = [[@item3, @merchant2], [@item4, @merchant3]]
       
       testing_sequence.each do |item, merchant|
@@ -44,7 +43,6 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
 
       expect(response).to_not be_successful
       expect(response.status).to eq(404)
-      #Related: could I group some of these (DRY)?  I suspect so...
       expect(error_message[:data][:message]).to eq("Your request for returning merchant associated with item could not be completed")
       expect(error_message[:data][:errors]).to be_a(Array)
       expect(error_message[:data][:errors][0]).to eq("Couldn't find Item with 'id'=#{nonexistant_id}")
@@ -59,7 +57,6 @@ RSpec.describe "Merchant (of Item) endpoints", type: :request do
 
       expect(response).to_not be_successful
       expect(response.status).to eq(404)
-      #Related: could I group some of these (DRY)?  I suspect so...
       expect(error_message[:data][:message]).to eq("Your request for returning merchant associated with item could not be completed")
       expect(error_message[:data][:errors]).to be_a(Array)
       expect(error_message[:data][:errors][0]).to eq("Couldn't find Item with 'id'=#{@item7.id}")

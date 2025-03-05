@@ -58,8 +58,6 @@ RSpec.describe "Merchants endpoints", type: :request do
 
   describe "#update (patch) tests" do
     it "can update a Merchant record with only name provided" do
-      #NOTE: might change which @merchant referred to in different spots for better coverage
-      # found_merchant = Merchant.find_by(id: id)
       previous_merchant_name = @merchant1.name
       updated_merchant_attributes = { name: "Babs" }
 
@@ -183,7 +181,7 @@ RSpec.describe "Merchants endpoints", type: :request do
     end
 
     it "sad path: returns an error message when merchant does not exist" do
-      get "/api/v1/merchants/1000" # becuase 'a' is not a real id
+      get "/api/v1/merchants/1000" 
 
       expect(response).to have_http_status(:not_found)
       json = JSON.parse(response.body, symbolize_names: true)
@@ -211,7 +209,6 @@ RSpec.describe "Merchants endpoints", type: :request do
       json = JSON.parse(response.body, symbolize_names: true)
   
       expect(response).to have_http_status(:unprocessable_entity)
-      # expect(json[:error]).to eq("Merchant was not created")
       expect(json[:message]).to eq("Merchant was not created")
       expect(json[:errors]).to be_a(Array)
       expect(json[:errors][0]).to eq("param is missing or the value is empty: merchant")
@@ -255,9 +252,6 @@ RSpec.describe "Merchants endpoints", type: :request do
 
     it "sad path: error if query value other than 'returned/shipped/packaged' sent" do
       get "/api/v1/merchants/#{@merchant2.id}/invoices?status=indeterminate"
-
-      # binding.pry
-
       expect(JSON.parse(response.body, symbolize_names: true)[:data][:errors]).to eq(["Only valid values for 'status' query are 'returned', 'shipped', or 'packaged'"])
     end
   end

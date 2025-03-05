@@ -48,7 +48,6 @@ class Api::V1::MerchantsController < ApplicationController
 
   def merchant_not_found(exception)
     render json: ErrorSerializer.handle_exception(exception, "Merchant not found"), status: :not_found
-    # render json: { error: "Merchant not found" }, status: :not_found
   end
 
   def parameter_missing_error(exception)

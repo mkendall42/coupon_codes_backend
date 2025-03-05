@@ -102,6 +102,15 @@ RSpec.describe Api::V1::Items::SearchController, type: :controller do
         expect(response).to have_http_status(:success)
         expect(JSON.parse(response.body)['data']['attributes']['name']).to eq('root beer')
       end
+
+      it "sad path: return error if max_price is less than min_price" do
+        get :find, params: { min_price: 50, max_price: 10 }
+        response_message = JSON.parse(response.body, symbolize_names: true)
+
+        expect(response).to_not be_successful
+        expect(response_message[:message]).to eq("Item not found")
+        expect(response_message[:errors]).to eq(["Cannot have max_price less than min_price"])
+      end
     end
 
     context 'when no parameters are provided' do

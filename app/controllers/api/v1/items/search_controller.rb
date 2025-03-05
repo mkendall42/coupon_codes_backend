@@ -31,10 +31,10 @@ class Api::V1::Items::SearchController < ApplicationController
       # items = items.where("unit_price <= ?", max_price) if max_price
       # item = items.order(:name).first
 
-      #IMPORTANT: check for max < min 
-
       if item
         render json: ItemSerializer.new(item)
+      elsif params[:min_price] && params[:max_price] && (params[:max_price] < params[:min_price])
+        render json: ErrorSerializer.no_item_matched("Cannot have max_price less than min_price"), status: :not_found
       else
         render json: ErrorSerializer.no_item_matched("No item exists within specified price range"), status: :not_found
         # render json: { error: "Item not found" }, status: :not_found

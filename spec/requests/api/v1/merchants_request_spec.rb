@@ -205,7 +205,7 @@ RSpec.describe "Merchants endpoints", type: :request do
     end
   end
 
-  describe "create merchant failure" do
+  describe "sad path: create merchant failure" do
     it "should give sad path message when it does not work" do
       post "/api/v1/merchants", params: {}, headers: { "CONTENT_TYPE" => "application/json" }
       json = JSON.parse(response.body, symbolize_names: true)
@@ -220,15 +220,6 @@ RSpec.describe "Merchants endpoints", type: :request do
 
   describe "can list customers related to a specific merchant" do
     it "can grab customers by merchant id" do
-      # @customer1 = Customer.create!(first_name: "John J.", last_name: "Jingleheimerschmidt")
-      # @customer2 = Customer.create!(first_name: "Timmy", last_name: "Turner")
-      # @customer3 = Customer.create!(first_name: "Spongebob", last_name: "Squarepants")
-
-      # @invoice1 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped")
-      # @invoice2 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "returned")
-      # @invoice3 = Invoice.create!(customer_id: @customer2.id, merchant_id: @merchant2.id, status: "shipped")
-      # @invoice4 = Invoice.create!(customer_id: @customer3.id, merchant_id: @merchant2.id, status: "shipped")
-
       get "/api/v1/merchants/#{@merchant2.id}/customers"
       customers = JSON.parse(response.body, symbolize_names: true)
 
@@ -239,15 +230,6 @@ RSpec.describe "Merchants endpoints", type: :request do
 
   describe "can get list of invoices for a merchant based on status" do
     it "for shipped" do
-      # @customer1 = Customer.create!(first_name: "John J.", last_name: "Jingleheimerschmidt")
-      # @customer2 = Customer.create!(first_name: "Timmy", last_name: "Turner")
-      # @customer3 = Customer.create!(first_name: "Spongebob", last_name: "Squarepants")
-
-      # @invoice1 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped")
-      # @invoice2 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "returned")
-      # @invoice3 = Invoice.create!(customer_id: @customer2.id, merchant_id: @merchant2.id, status: "shipped")
-      # @invoice4 = Invoice.create!(customer_id: @customer3.id, merchant_id: @merchant2.id, status: "shipped")
-
       get "/api/v1/merchants/#{@merchant1.id}/invoices?status=shipped"
       invoices = JSON.parse(response.body, symbolize_names: true)
 
@@ -255,19 +237,22 @@ RSpec.describe "Merchants endpoints", type: :request do
     end
 
     it "for returned" do
-      # @customer1 = Customer.create!(first_name: "John J.", last_name: "Jingleheimerschmidt")
-      # @customer2 = Customer.create!(first_name: "Timmy", last_name: "Turner")
-      # @customer3 = Customer.create!(first_name: "Spongebob", last_name: "Squarepants")
-
-      # @invoice1 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped")
-      # @invoice2 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "returned")
-      # @invoice3 = Invoice.create!(customer_id: @customer2.id, merchant_id: @merchant2.id, status: "shipped")
-      # @invoice4 = Invoice.create!(customer_id: @customer3.id, merchant_id: @merchant2.id, status: "shipped")
-
       get "/api/v1/merchants/#{@merchant1.id}/invoices?status=returned"
       invoices = JSON.parse(response.body, symbolize_names: true)
 
       expect(invoices[:data].first[:attributes][:status]).to eq("returned")
+    end
+
+    it "sad path: error if query other than 'status' is sent" do
+      get "/api/v1/merchants/#{@merchant3.id}/invoices?customer_id=12345"
+
+      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).to eq(["Only valid query parameter is 'status='"])
+    end
+
+    it "sad path: error if query value other than 'returned/shipped/packaged' sent" do
+      get "/api/v1/merchants/#{@merchant3.id}/invoices?status=indeterminate"
+
+      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).to eq(["Only valid values for 'status' query are 'returned', 'shipped', or 'packaged'"])
     end
   end
 end

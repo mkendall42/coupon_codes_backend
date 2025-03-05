@@ -1,11 +1,8 @@
 class ErrorSerializer
-  #This handles general error returns
+  #This handles general error returns to be aligned with BE requirements doc
 
   def self.handle_exception(exception, custom_message)
     #Check if exception.message is already an array of strings; if not, make it so
-
-    # binding.pry
-
     if exception.message.class != Array
       errors_array = [exception.message]
     else

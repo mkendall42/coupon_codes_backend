@@ -14,4 +14,8 @@ class Merchant < ApplicationRecord
   def item_count
     items.count
   end
+
+  def self.find_by_name_string(search_string)
+    where("name ILIKE ?", "%#{search_string}%").order(:name)
+  end
 end

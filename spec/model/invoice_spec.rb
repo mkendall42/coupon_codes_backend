@@ -6,7 +6,7 @@ describe Invoice, type: :model do
     it { should belong_to :customer }
     it { should have_many :invoice_items }
     it { should have_many :transactions }
-    it { should belong_to :coupon }
+    it { should belong_to :coupon }       #Not working correctly.  How to set presence validation on coupon?  Or just remove this test / teach shoulda how to deal with this?
   end
 
   describe "filter by status(status)" do

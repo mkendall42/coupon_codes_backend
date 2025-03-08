@@ -13,6 +13,8 @@ RSpec.describe Merchant, type: :model do
   describe "relationships" do
     it { should have_many :items }
     it { should have_many :invoices }
+    it { should have_many :coupons }
+    #I assume 'customers' not done here due to join / through: ?
   end
 
   describe ".sorted_by_age" do

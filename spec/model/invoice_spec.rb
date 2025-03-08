@@ -6,6 +6,7 @@ describe Invoice, type: :model do
     it { should belong_to :customer }
     it { should have_many :invoice_items }
     it { should have_many :transactions }
+    it { should belong_to :coupon }
   end
 
   describe "filter by status(status)" do

@@ -2,6 +2,7 @@ class Merchant < ApplicationRecord
   has_many :invoices, dependent: :destroy
   has_many :items, dependent: :destroy
   has_many :customers, through: :invoices
+  has_many :coupons                         #Set up destroy callback?  Or keep 'em?
 
   def self.sorted_by_age
     order(created_at: :desc)

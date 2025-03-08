@@ -1,0 +1,17 @@
+#Some likely types of Rails migration commands:
+
+#Basic command:
+rails generate migration CreateCoupons <column:data_type> ... 
+
+#Add association ("references" makes foreign key, indexes it, etc.)
+#Remember that the foreign key here means this (coupon) belongs_to that (invoice)
+rails generate migration CreateCoupons <columns> invoice:references
+#Alternate: invoice:belongs_to (alias)
+
+#Full command:
+rails generate migration CreateCoupons name:string code:string status:boolean discount_value:float discount_percentage:float invoice:references
+
+#Adding a new column to existing table (exact syntax matters for generation):
+rails generate migration AddColumnNameToCoupons column_name:<data type>
+
+#To remove it, just make "Add"->"Remove" and "To"->"From" (all else identical)

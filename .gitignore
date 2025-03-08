@@ -34,3 +34,6 @@
 
 #SimpleCov:
 coverage/
+
+#My own planning / meta file:
+planning.md

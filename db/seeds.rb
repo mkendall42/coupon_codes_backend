@@ -12,3 +12,6 @@ cmd = "pg_restore --verbose --clean --no-acl --no-owner -h localhost -U $(whoami
 puts "Loading PostgreSQL Data dump into local database with command:"
 puts cmd
 system(cmd)
+
+#NOTE: by default, no other seed data can be placed here (i.e. for new tables I'm creating / migrating) due to above command.
+#Sounds like there might be a workaround though.  I might check into this - we'll see.

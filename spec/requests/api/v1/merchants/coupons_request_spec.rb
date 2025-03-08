@@ -8,6 +8,14 @@ RSpec.describe "Coupons of specific merchant", type: :request do
 
     @coupon1 = Coupon.create!(name: "Basic discount", code: "GET10OFF", status: true, discount_value: 10.00, discount_percentage: nil, merchant_id: @merchant1.id)
     @coupon1 = Coupon.create!(name: "Big % discount", code: "GET30OFF", status: true, discount_value: nil, discount_percentage: 30.0, merchant_id: @merchant2.id)
+
+    #Trying FactoryBot implementation:
+    @merchants = create_list(:merchant, 2)
+
+    @coupons = create_list(:coupon, 2)
+
+    @invoices = create_list(:invoice, 4)
+
   end
 
   describe "#index tests" do

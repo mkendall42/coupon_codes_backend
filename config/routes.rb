@@ -36,5 +36,6 @@ Rails.application.routes.draw do
   #NOTE: using 'merchant_id' instead of just 'id' since the latter is also need for specifying coupons later
   get "/api/v1/merchants/:merchant_id/coupons", to: "api/v1/merchants/coupons#index"
   get "/api/v1/merchants/:merchant_id/coupons/:id", to: "api/v1/merchants/coupons#show"
+  post "/api/v1/merchants/:merchant_id/coupons", to: "api/v1/merchants/coupons#create"
 
 end

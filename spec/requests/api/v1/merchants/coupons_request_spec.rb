@@ -159,7 +159,7 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       expect(response).to be_successful
       expect(coupon_data[:data][:attributes][:times_used]).to eq(1)
       
-      binding.pry
+      # binding.pry
       
       #Example 2 - check second coupon (2 invoices use it)
       get "/api/v1/merchants/#{@merchants[1].id}/coupons/#{@coupons[2].id}"
@@ -193,9 +193,46 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       }
       expect(response).to_not be_successful     #Maybe check exact response code
       expect(error_message[:data][:message]).to eq(expected_response[:data][:message])
+    end
+  end
+
+  describe "#create tests" do
+    it "can create a valid new coupon" do
+      #Happy path here (don't set active, or have it below threshold)
+
+      # binding.pry
       
+      new_coupon_info = {
+        name: "Huge discount - 40% off any item",
+        code: "40OFFWOW",
+        status: true,         #Set active - should work (no other coupons with this merchant)
+        discount_value: nil,
+        discount_percentage: 40.0
+      }
+      post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(new_coupon_info), headers: { "CONTENT_TYPE" => "application/json" }
+      json = JSON.parse(response.body, symbolize_names: true)
+
+      binding.pry
 
     end
+
+    it "creates new inactive coupon regardless of number of active coupons" do
+
+    end
+
+    it "sad path: fails to create new active coupon if >= 5 active coupons already exist for merchant" do
+
+    end
+
+    it "sad path: fails to create if both discount_value and discount_percentage are supplied, or neither" do
+
+    end
+
+    it "sad path: fails to create if code is not unique" do
+
+    end
+
+    #Do I need to check for nonexistant merchant AGAIN?
 
   end
 

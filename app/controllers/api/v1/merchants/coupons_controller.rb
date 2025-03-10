@@ -28,8 +28,39 @@ class Api::V1::Merchants::CouponsController < ApplicationController
     render json: CouponSerializer.new(specified_coupon, { params: { display_count: true } })
   end
 
+  def create
+    #Create new coupon, but check things first:
+    #1) error if code ! unique
+    #2) error if attempting to create active coupon with >= 5 already active
+
+    #Check code uniqueness - ADD LATER
+
+    #Check that discount_value XOR discount_percentage is provided
+
+    binding.pry
+
+    #Check for number of current active coupons
+    if params[:status] == "active" && find_number_active_coupons(params[:merchant_id]) >= 5
+      #We gots a prob
+      render json: { data: "Houston, we have a problem" }, status: :unprocessable_entity
+      # Merchant.find(params[:merchant_id])
+    else
+      #NOTE: failing validation due to nonexistant merchant.  I assume it's because of coupon_params()...
+      # new_coupon = Coupon.create!(coupon_params)
+      # params.permit!
+      # new_coupon = Coupon.create!(params)
+      #GOOD GRIEF THAT TOOK LONGER TO DO THAN I WANT TO ADMIT...
+      new_coupon = Merchant.find(params[:merchant_id]).coupons.create!(coupon_params)
+
+      render json: CouponSerializer.new(new_coupon), status: :created
+    end
+  end
 
   private
+
+  def coupon_params
+    params.require(:coupon).permit(:name, :code, :status, :discount_value, :discount_percentage, :merchant_id)
+  end
 
   #Later: refactor into main class (esp since this repeats MerchantController exactly)
   def coupon_not_found(exception)

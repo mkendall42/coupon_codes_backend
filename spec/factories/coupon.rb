@@ -7,6 +7,7 @@ FactoryBot.define do
     discount_percentage {}
 
     #Also define associations so they automatically connect
+    #NOTE: I may need to manually build merchants here to get access to them...
     association :merchant
   end
 end

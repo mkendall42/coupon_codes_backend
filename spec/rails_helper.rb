@@ -46,6 +46,7 @@ RSpec.configure do |config|
   # instead of true.
   config.use_transactional_fixtures = true
 
+  #Run FactoryBot config (so methods do not need to be called explicitly from class FactoryBot)
   config.include FactoryBot::Syntax::Methods
 
   # You can uncomment this line to turn off ActiveRecord support entirely.

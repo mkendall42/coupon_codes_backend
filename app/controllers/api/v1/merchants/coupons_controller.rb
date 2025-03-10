@@ -1,5 +1,6 @@
 class Api::V1::Merchants::CouponsController < ApplicationController
   #Handles coupon related queries belonging to a merchant (hence the namespace)
+  rescue_from ActiveRecord::RecordNotFound, with: :merchant_not_found
 
   def index
     #Find and render all coupons for merchant.
@@ -13,6 +14,14 @@ class Api::V1::Merchants::CouponsController < ApplicationController
     #Will need a new serializer for this
     render json: CouponSerializer.new(merchant_coupons)
 
+  end
+
+
+  private
+
+  #Later: refactor into main class (esp since this repeats MerchantController exactly)
+  def merchant_not_found(exception)
+    render json: ErrorSerializer.handle_exception(exception, "Merchant not found"), status: :not_found
   end
 
 end

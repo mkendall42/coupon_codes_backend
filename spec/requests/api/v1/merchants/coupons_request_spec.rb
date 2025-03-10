@@ -105,5 +105,36 @@ RSpec.describe "Coupons of specific merchant", type: :request do
 
   end
 
+  describe "#show tests" do
+    it "locates and correctly renders single coupon info (2 examples)" do
+      #First example
+      get "/api/v1/merchants/#{@merchants[1].id}/coupons/#{@coupons[1].id}"
+      coupons_data1 = JSON.parse(response.body, symbolize_names: true)
+
+      # binding.pry
+
+      expect(response).to be_successful
+      #Just once, check JSON structuring
+      # expect()
+      #Now check the data actually matches the record - iterate over the hash
+      coupons_data1[:data][:attributes].each do |attribute, value|
+        expect(@coupons[1][attribute]).to eq(value)
+      end
+
+      #Second example
+      get "/api/v1/merchants/#{@merchants[2].id}/coupons/#{@coupons[3].id}"
+      coupons_data2 = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to be_successful
+      coupons_data2[:data][:attributes].each do |attribute, value|
+        expect(@coupons[3][attribute]).to eq(value)
+      end
+    end
+
+    it "" do
+    end
+
+  end
+
 
 end

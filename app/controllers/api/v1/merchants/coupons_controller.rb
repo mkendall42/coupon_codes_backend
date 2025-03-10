@@ -16,6 +16,15 @@ class Api::V1::Merchants::CouponsController < ApplicationController
 
   end
 
+  def show
+    #Find and render specified coupon for specified merchant.
+    specified_coupon = Merchant.find(params[:merchant_id]).coupons.find(params[:id])
+
+    #NOTE: Need to add count functionality here!
+    
+    render json: CouponSerializer.new(specified_coupon)
+  end
+
 
   private
 

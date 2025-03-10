@@ -20,9 +20,12 @@ class Api::V1::Merchants::CouponsController < ApplicationController
     #Find and render specified coupon for specified merchant.
     specified_coupon = Merchant.find(params[:merchant_id]).coupons.find(params[:id])
 
-    #NOTE: Need to add count functionality here!
-    
-    render json: CouponSerializer.new(specified_coupon)
+    #NOTE: Need to add count functionality here! (model method AND serializer)
+
+    # binding.pry
+
+    #Don't know if there's an easier way to do this, e.g. .new(specified_coupon, :times_used) or something...
+    render json: CouponSerializer.new(specified_coupon, { params: { display_count: true } })
   end
 
 

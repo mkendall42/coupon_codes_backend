@@ -34,7 +34,11 @@ class Api::V1::Merchants::CouponsController < ApplicationController
     #2) error if attempting to create active coupon with >= 5 already active
 
     #Check code uniqueness - ADD LATER
-    # if params[:code]
+    if !Coupon.verify_unique_code(params[:code])
+      render json: { data: "You must specify a unique code" }, status: :unprocessable_entity
+      #Fancier: could return a suggestion for a unique code in the JSON response...
+      return
+    end
 
     #Check that discount_value XOR discount_percentage is provided
     #This is my attempt at creating a proper XOR operator here (coerce to boolean, then usual XOR)
@@ -44,7 +48,7 @@ class Api::V1::Merchants::CouponsController < ApplicationController
       return
     end
 
-    binding.pry
+    # binding.pry
 
     #First, look up spceified merchant (and verify success)
     merchant = Merchant.find(params[:merchant_id])

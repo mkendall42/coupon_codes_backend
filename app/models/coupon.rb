@@ -20,12 +20,12 @@ class Coupon < ApplicationRecord
 
 #   #Verify that the code is unique before proceeding - should this be instance or class method?
 #   #NOTE: make this a before_create (or whatever) callback!  Should work...
-#   def verify_unique_code
-#     #Check DB for all coupons' codes.
-#     #QUESTION: does code need to truly be unique, or just for a given merchant?
-#     return true if !Coupon.find_by(code: code)
-#     return false
-#   end
+  def self.verify_unique_code(code)
+    #Check DB for all coupons' codes.  For now, must be unique among ALL codes; later could just be unique per merchant
+    #Also, for now a class method, since it's hard to call on an object when it doesn't yet exist (i.e. when creating it)
+    return true if !find_by(code: code)
+    return false
+  end
 
 #   #Generate a new unique code - should this be instance or class method?
 #   def generate_unique_code

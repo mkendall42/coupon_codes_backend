@@ -306,10 +306,18 @@ RSpec.describe "Coupons of specific merchant", type: :request do
         discount_percentage: nil
       }
       post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(identical_coupon_attributes), headers: { "CONTENT_TYPE" => "application/json" }
-      second_error_message = JSON.parse(response.body, symbolize_names: true)
+      # second_error_message = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to be_successful
+
+      post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(identical_coupon_attributes), headers: { "CONTENT_TYPE" => "application/json" }
+      error_message = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to_not be_successful
-      expect()
+      expect(error_message).to eq({ data: "You must specify a unique code" })
+
+      # binding.pry
+      
     end
 
     it "sad path: fails to create if certain information is missing" do

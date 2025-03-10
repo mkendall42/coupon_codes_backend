@@ -5,6 +5,8 @@ class Invoice < ApplicationRecord
   has_many :transactions, dependent: :destroy
   belongs_to :coupon, optional: true            #Foreign key allowed to be null (or valid id)
 
+  validates :status, inclusion: { in: ["shipped", "packaged", "returned"] }   #Hopefully this works correctly!
+
   # scope :filter_by_status, ->(status) { where(status: status) if status.present? }
   # above is the sugary way. I think maybe it is best to use the more standard, easily understood way for this
   # project maybe. (the one just below)

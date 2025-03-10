@@ -3,7 +3,13 @@ class Coupon < ApplicationRecord
   belongs_to :merchant
 
   def times_used
-    return 3      #Just for testing right now, adjust later!
+    #Determine number of times this coupon has been used.
+    #We'll define 'used' as any invoice attached to it (though technically it could wait until 'shipped')
+
+    #This needs to find this coupon's connection to ALL invoices
+    Invoice.where(coupon_id: self.id).count
+
+    # return 3      #Just for testing right now, adjust later!
   end
 
 #   #Verify that the code is unique before proceeding - should this be instance or class method?
@@ -29,4 +35,5 @@ class Coupon < ApplicationRecord
 #       return new_code if verify_unique_code
 #     end
 #   end
-# end
+
+end

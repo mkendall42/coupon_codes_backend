@@ -1,5 +1,6 @@
 class Coupon < ApplicationRecord
-  has_one :invoice          #Remember: do NOT destroy invoice if coupon destroyed!
+  has_many :invoices          #Remember: do NOT destroy invoice(s) if coupon destroyed!
+  #NOTE: the above should probably be 'has_many', since it can be used again and again...
   belongs_to :merchant
 
   def times_used
@@ -10,6 +11,37 @@ class Coupon < ApplicationRecord
     Invoice.where(coupon_id: self.id).count
 
     # return 3      #Just for testing right now, adjust later!
+  end
+
+  def set_status(new_status)
+    #If setting inactive->active, must check that < 5 are already active for merchant
+    #If setting active->inactive, must check that there are no associated pending invoice(s)
+
+    #AH CRAP; 'render' doesn't exist outside of controller scope.  This makes it tougher...
+    #Could either return true/false and process accordinately, but this would miss some granularity on the nature of the problem
+    #OR, just move all this to the controller (except AR queries, keep 'em in models)
+
+    # binding.pry
+
+    # if new_status == "active" && status == false
+    #   if merchant.find_number_active_coupons >= 5
+    #     render json: { data: "too many active already yo" }, status: :unprocessable_entity
+    #   else
+    #     #Activate it!
+    #     render json: { data: "hi" }
+    #   end
+    # elsif new_status == "inactive" && status == true
+    #   if invoices.where(status: "packaged").count > 0
+    #     render json: { data: "Ya can't deactivate it 'til it's processed, man!" }, status: :unprocessable_entity
+    #   else
+    #     #Deactivate it!
+    #     render json: { data: "hi" }
+    #   end
+    # else
+    #   #Either nothing was changed, or got a bad input string here, generate an appropriate error
+    #   render json: { data: "uh oh, hit the else" }, status: 404
+    # end
+
   end
 
   # def find_number_active_coupons

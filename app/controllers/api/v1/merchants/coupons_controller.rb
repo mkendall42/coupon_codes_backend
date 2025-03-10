@@ -30,10 +30,7 @@ class Api::V1::Merchants::CouponsController < ApplicationController
 
   def create
     #Create new coupon, but check things first:
-    #1) error if code ! unique
-    #2) error if attempting to create active coupon with >= 5 already active
 
-    #Check code uniqueness - ADD LATER
     if !Coupon.verify_unique_code(params[:code])
       render json: { data: "You must specify a unique code" }, status: :unprocessable_entity
       #Fancier: could return a suggestion for a unique code in the JSON response...
@@ -48,7 +45,8 @@ class Api::V1::Merchants::CouponsController < ApplicationController
       return
     end
 
-    # binding.pry
+
+    #Now we're ready to find the associated merchant and create:
 
     #First, look up spceified merchant (and verify success)
     merchant = Merchant.find(params[:merchant_id])
@@ -68,6 +66,39 @@ class Api::V1::Merchants::CouponsController < ApplicationController
 
       render json: CouponSerializer.new(new_coupon), status: :created
     end
+  end
+
+  def update
+    #NOTE: for now, this will ONLY update 'status' via a query.
+    #TO ASK: should we even allow changing other things?  You're kinda messing with the 'identity' of the coupon at that point...
+    
+    binding.pry
+
+    if params[:status]
+      coupon = Coupon.find(params[:id])
+      coupon.set_status(params[:status])
+
+      if params[:status] == "active" && coupon.status == false
+        if coupon.merchant.find_number_active_coupons >= 5
+          render json: { data: "too many active already yo" }, status: :unprocessable_entity
+        else
+          #Activate it!
+          render json: { data: "hi" }
+        end
+      elsif params[:status] == "inactive" && coupon.status == true
+        if coupon.invoices.where(status: "packaged").count > 0
+          render json: { data: "Ya can't deactivate it 'til it's processed, man!" }, status: :unprocessable_entity
+        else
+          #Deactivate it!
+          render json: { data: "hi" }
+        end
+      else
+        #Either nothing was changed, or got a bad input string here, generate an appropriate error
+        render json: { data: "uh oh, hit the else" }, status: 404
+      end
+
+    end
+
   end
 
   private

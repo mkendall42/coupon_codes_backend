@@ -6,8 +6,8 @@ RSpec.describe "Coupons of specific merchant", type: :request do
     @merchant1 = Merchant.create!(name: "Midwest Tungsten Service")
     @merchant2 = Merchant.create!(name: "Schrodinger, Born, and Oppenheimer")
 
-    @coupon1 = Coupon.create!(name: "Basic discount", code: "GET10OFF", status: true, discount_value: 10.00, discount_percentage: nil, merchant_id: @merchant1.id)
-    @coupon1 = Coupon.create!(name: "Big % discount", code: "GET30OFF", status: true, discount_value: nil, discount_percentage: 30.0, merchant_id: @merchant2.id)
+    @coupon1 = Coupon.create!(name: "Basic discount", code: "GET10OFF", status: false, discount_value: 10.00, discount_percentage: nil, merchant_id: @merchant1.id)
+    @coupon2 = Coupon.create!(name: "Big % discount", code: "GET30OFF", status: true, discount_value: nil, discount_percentage: 30.0, merchant_id: @merchant2.id)
 
     #Trying FactoryBot implementation:
     #NOTE: need to determine how to set up how things get associated
@@ -322,10 +322,68 @@ RSpec.describe "Coupons of specific merchant", type: :request do
 
     it "sad path: fails to create if certain information is missing" do
       #Will alredy catch discount_ params, and code.  Also check name, maybe status (or default to false)?
+      #Need to employ validation here...
 
     end
 
     #Do I need to check for nonexistant merchant AGAIN?
+
+  end
+
+  describe "#update tests (setting coupon active/inactive)" do
+    it "can change status of coupon (inactive->active, and vice versa)" do
+      #For here, just need basic coupon, invoice setup (nothing fancy)
+      #Because factories aren't set up right yet, have these manually here:
+      # @merchant1 = Merchant.create!(name: "Midwest Tungsten Service")
+      # @merchant2 = Merchant.create!(name: "Schrodinger, Born, and Oppenheimer")
+      # @coupon1 = Coupon.create!(name: "Basic discount", code: "GET10OFF", status: false, discount_value: 10.00, discount_percentage: nil, merchant_id: @merchant1.id)
+      # @coupon2 = Coupon.create!(name: "Big % discount", code: "GET30OFF", status: true, discount_value: nil, discount_percentage: 30.0, merchant_id: @merchant2.id)
+      @customer1 = Customer.create!(first_name: "Marcus", last_name: "Aurelius")
+      @invoice1 = Invoice.create!(status: "shipped", coupon_id: @coupon1.id, merchant_id: @merchant1.id, customer_id: @customer1.id)
+      @invoice2 = Invoice.create!(status: "returned", coupon_id: @coupon1.id, merchant_id: @merchant1.id, customer_id: @customer1.id)
+      # @invoice3 = Invoice.create!(status: "shipped", coupon_id: @coupon2.id, merchant_id: @merchant2.id, customer_id: @customer1.id)
+
+      # binding.pry
+
+      headers = {"CONTENT_TYPE" => "application/json"}
+      uri_request_activate = "/api/v1/merchants/#{@merchant1.id}/coupons/#{@coupon1.id}?status=active"
+      uri_request_deactivate = "/api/v1/merchants/#{@merchant2.id}/coupons/#{@coupon2.id}?status=inactive"
+
+      patch uri_request_activate, headers: headers
+      response_message1 = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to be_successful
+      expect(response_message1).to eq({ data: "hi" })
+
+      patch uri_request_deactivate, headers: headers
+      response_message2 = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to be_successful
+      expect(response_message2).to eq({ data: "hi" })
+    end
+
+    it "sad path: cannot activate specified coupon if >= 5 already exist" do
+      #Need to add more pre-activated coupons in advance to test this
+      
+
+      patch uri_request_activate, headers: headers
+      response_message1 = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to be_successful
+      expect(response_message1).to eq({ data: "hi" })
+
+    end
+
+    it "sad path: cannot deactivate coupon until invoice has completed" do
+      #Set up invoice(s) assigned
+
+      #Verify cannot deactivate
+
+      #Now process invoice, show can deactivate as normal
+
+    end
+
+    #If allowed to change other attributes, add tests here
 
   end
 

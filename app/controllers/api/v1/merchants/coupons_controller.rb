@@ -34,13 +34,23 @@ class Api::V1::Merchants::CouponsController < ApplicationController
     #2) error if attempting to create active coupon with >= 5 already active
 
     #Check code uniqueness - ADD LATER
+    # if params[:code]
 
     #Check that discount_value XOR discount_percentage is provided
+    #This is my attempt at creating a proper XOR operator here (coerce to boolean, then usual XOR)
+    #Not the most readable, though...so perhaps change it back?
+    if !(!!params[:discount_value] ^ !!params[:discount_percentage])
+      render json: { data: "Ya can't set neither nor both value and percentage at once, fool!"}, status: :unprocessable_entity
+      return
+    end
 
     binding.pry
 
+    #First, look up spceified merchant (and verify success)
+    merchant = Merchant.find(params[:merchant_id])
+
     #Check for number of current active coupons
-    if params[:status] == "active" && find_number_active_coupons(params[:merchant_id]) >= 5
+    if params[:status] == true && merchant.find_number_active_coupons >= 5
       #We gots a prob
       render json: { data: "Houston, we have a problem" }, status: :unprocessable_entity
       # Merchant.find(params[:merchant_id])

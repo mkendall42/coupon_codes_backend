@@ -19,4 +19,10 @@ class Merchant < ApplicationRecord
   def self.find_by_name_string(search_string)
     where("name ILIKE ?", "%#{search_string}%").order(:name)
   end
+
+  def find_number_active_coupons
+    #NOTE: status = true is active, false is inactive (should've named table column active_status)
+    # Merchant.find(current_merchant_id).coupons.where(status: true).count
+    coupons.where(status: true).count
+  end
 end

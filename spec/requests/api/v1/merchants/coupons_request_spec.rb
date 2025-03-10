@@ -210,25 +210,110 @@ RSpec.describe "Coupons of specific merchant", type: :request do
         discount_percentage: 40.0
       }
       post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(new_coupon_info), headers: { "CONTENT_TYPE" => "application/json" }
-      json = JSON.parse(response.body, symbolize_names: true)
+      response_message = JSON.parse(response.body, symbolize_names: true)
 
-      binding.pry
+      # binding.pry
 
     end
 
     it "creates new inactive coupon regardless of number of active coupons" do
+      @coupons << create_list(:coupon, 5, status: true, merchant: @merchants[3])
+      @coupons.flatten
 
+      #First, check that there are exactly 5 active coupons present
+      expect(@merchants[3].find_number_active_coupons).to eq(5)
+      
+      new_coupon_info = {
+        name: "$10 off any item",
+        code: "SAVE10YES",
+        status: false,         #Set inactive
+        discount_value: 10.0,
+        discount_percentage: nil
+      }
+      post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(new_coupon_info), headers: { "CONTENT_TYPE" => "application/json" }
+      response_message = JSON.parse(response.body, symbolize_names: true)
+      
+      # binding.pry
+
+      expected_response = {
+        data: {
+          id: @merchants[3].coupons.last.id.to_s,
+          type: "coupon",
+          attributes: new_coupon_info
+        }
+      }
+      expect(response).to be_successful   #Status 201 - set this
+      expect(response_message).to eq(expected_response)
     end
 
     it "sad path: fails to create new active coupon if >= 5 active coupons already exist for merchant" do
+      @coupons << create_list(:coupon, 5, status: true, merchant: @merchants[3])
+      @coupons.flatten
+
+      new_coupon_info = {
+        name: "$10 off any item",
+        code: "SAVE10YES",
+        status: true,         #Now we cause trouble
+        discount_value: 10.0,
+        discount_percentage: nil
+      }
+      post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(new_coupon_info), headers: { "CONTENT_TYPE" => "application/json" }
+      error_message = JSON.parse(response.body, symbolize_names: true)
+
+      # binding.pry
+
+      expect(response).to_not be_successful
+      expect(error_message[:data]).to eq("Houston, we have a problem")    #Update later
 
     end
 
     it "sad path: fails to create if both discount_value and discount_percentage are supplied, or neither" do
+      new_coupon_info = {
+        name: "Is it $20 or 20%?  Who knows?",
+        code: "SOMEDISCOUNTMAYBE",
+        status: true,
+        discount_value: 20.0,
+        discount_percentage: 20.0
+      }
+      post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(new_coupon_info), headers: { "CONTENT_TYPE" => "application/json" }
+      error_message = JSON.parse(response.body, symbolize_names: true)
 
+      binding.pry
+
+      expect(response).to_not be_successful
+      expect(error_message).to eq({ data: "Ya can't set neither nor both value and percentage at once, fool!" })
+
+      second_coupon_info = {
+        name: "No discout, I guess",
+        code: "PROBABLYNOSAVE",
+        status: true,         
+        discount_value: nil,
+        discount_percentage: nil
+      }
+      post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(second_coupon_info), headers: { "CONTENT_TYPE" => "application/json" }
+      second_error_message = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to_not be_successful
+      expect(error_message).to eq({ data: "Ya can't set neither nor both value and percentage at once, fool!" })
     end
 
     it "sad path: fails to create if code is not unique" do
+      identical_coupon_attributes = {
+        name: "I'm a copy",
+        code: "DUPLICATE12345",
+        status: false,
+        discount_value: 42.00,
+        discount_percentage: nil
+      }
+      post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(identical_coupon_attributes), headers: { "CONTENT_TYPE" => "application/json" }
+      second_error_message = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to_not be_successful
+      expect()
+    end
+
+    it "sad path: fails to create if certain information is missing" do
+      #Will alredy catch discount_ params, and code.  Also check name, maybe status (or default to false)?
 
     end
 

@@ -12,10 +12,11 @@ class Coupon < ApplicationRecord
     # return 3      #Just for testing right now, adjust later!
   end
 
-  def find_number_active_coupons(current_merchant_id)
-    #NOTE: status = true is active, false is inactive (should've named table column active_status)
-    Merchant.find(current_merchant_id).coupons.where(status: true).count
-  end
+  # def find_number_active_coupons
+  #   #NOTE: status = true is active, false is inactive (should've named table column active_status)
+  #   # Merchant.find(current_merchant_id).coupons.where(status: true).count
+  #   coupons.where(status: true).count
+  # end
 
 #   #Verify that the code is unique before proceeding - should this be instance or class method?
 #   #NOTE: make this a before_create (or whatever) callback!  Should work...

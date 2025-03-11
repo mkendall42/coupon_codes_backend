@@ -39,7 +39,7 @@ RSpec.describe "MerchantInvoices endpoints", type: :request do
       get "/api/v1/merchants/#{@merchant1.id}/invoices"
       invoices_data = JSON.parse(response.body, symbolize_names: true)
 
-      binding.pry
+      # binding.pry
 
       expect(response).to be_successful
       expect(invoices_data[:data].length).to eq(3)

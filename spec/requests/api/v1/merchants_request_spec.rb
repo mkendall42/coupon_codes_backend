@@ -70,7 +70,7 @@ RSpec.describe "Merchants endpoints", type: :request do
 
       merchant_data = JSON.parse(response.body, symbolize_names: true)
 
-      binding.pry
+      # binding.pry
 
       expect(response).to be_successful
       merchant_data[:data].each do |merchant|

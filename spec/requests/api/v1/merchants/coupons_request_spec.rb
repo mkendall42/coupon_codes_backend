@@ -2,30 +2,18 @@ require 'rails_helper.rb'
 
 RSpec.describe "Coupons of specific merchant", type: :request do
   before(:each) do
-    #Construct coupons here.  Perhaps use FactoryBot for this...
     @merchant1 = Merchant.create!(name: "Midwest Tungsten Service")
     @merchant2 = Merchant.create!(name: "Schrodinger, Born, and Oppenheimer")
 
     @coupon1 = Coupon.create!(name: "Basic discount", code: "GET10OFF", status: false, discount_value: 10.00, discount_percentage: nil, merchant_id: @merchant1.id)
     @coupon2 = Coupon.create!(name: "Big % discount", code: "GET30OFF", status: true, discount_value: nil, discount_percentage: 30.0, merchant_id: @merchant2.id)
 
-    #Trying FactoryBot implementation:
-    #NOTE: need to determine how to set up how things get associated
-    #NOTE: it seems to be generating NEW marchants just to associate for coupons
-    #May be able to manually pass associations in as args to override
-    #TRY THIS OUT!
-    # @merchants = create_list(:merchant, 2)
-
-    # @coupons = create_list(:coupon, merchant: @merchants, 2)
-
-    # @invoices = create_list(:invoice, 4)
-
-    #Ok, let's take another shot at this:
+    #FactoryBot implementation below.
+    #NOTE: for later tests, I resorted to the old fashioned way, due to:
+    #1) difficulty tracking multiple relations simultaneously
+    #2) needing correct initial values that can be tricky to randomize correctly (unique code, specifying ONLY one discount param, etc)
     #2 merchants: A, B, C
-    #3 coupons: 1A belongs to A, 1B and 2B belong to B, 1C belongs to C
-    #UPDATE: 4 invoices: 1 belongs to A and 1A, 1 belongs to B and 2B, 1 belongs to B (but no coupon), and 2 don't have a merchant or coupons -> fix this)
-    #Well, this seems to work.  However, it can easily be a mess, especially since it's creating other merchants / things as needed to keep all associations safe...
-    #ANOTHER THING: needs to correctly assign discounts (one must be nil), and unique codes...
+    #3 coupons: 1A belongs to A, 1B and 2B belong to B, 1C belongs to C, etc.
     @merchants = create_list(:merchant, 4)
     @coupons = [
       create_list(:coupon, 1, merchant: @merchants[0]),   #0
@@ -38,10 +26,6 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       create_list(:invoice, 1, merchant: @merchants[1]),
       create_list(:invoice, 2, merchant: @merchants[3])
     ].flatten
-
-    # merchant = create(:merchant)
-    #   create_list(:item, 10, merchant_id: merchant.id)
-
   end
 
   describe "#index tests" do
@@ -49,18 +33,10 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       get "/api/v1/merchants/#{@merchant1.id}/coupons"
       coupons_data = JSON.parse(response.body, symbolize_names: true)
       
-      # binding.pry
-
-      #Check JSON structure of each entry:
-      #Need to pass appropriate array of merchants as well
-      #Could zip 'em / something similar
       expect(response).to be_successful
       expect(coupons_data.length).to eq(1)
       expect(coupons_data[:data].length).to eq(@merchant1.coupons.length)
       coupons_data[:data].each do |coupon_data|
-
-        # binding.pry
-
         expect(coupon_data.length).to eq(3)
         expect(coupon_data[:type]).to eq("coupon")
         expect(coupon_data[:attributes][:name]).to be_a(String)
@@ -71,7 +47,6 @@ RSpec.describe "Coupons of specific merchant", type: :request do
         # expect(coupon_data[:attributes][:discount_percentage]).to be_a(Float)  #OR nil
         expect([Float, NilClass]).to include(coupon_data[:attributes][:discount_percentage].class)
       end
-
     end
 
     it "returns empty array / JSON for no coupons" do
@@ -89,20 +64,15 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       get "/api/v1/merchants/#{nonexistant_id}/coupons"
       error_message = JSON.parse(response.body, symbolize_names: true)
 
-      # binding.pry
-
-      #OOPS, need to rewrite serializer or rescue_from method or just make the message simpler.  Merchant not found won't give same msg as Coupon not found!
       expected_response = {
         data: {
           message: "Coupon not found",
           errors: ["Couldn't find Merchant with 'id'=#{nonexistant_id}"]
         }
       }
-      expect(response).to_not be_successful     #Maybe check exact code
+      expect(response).to_not be_successful
       expect(error_message).to eq(expected_response)
     end
-
-    #What about testing that if a merchant is deleted, so are all coupons?  Perhaps put in main merchant controller tests...
 
     it "filters list based on status (active/inactive)" do
       @coupon3 = Coupon.create!(name: "Big % discount", code: "GET40OFF", status: true, discount_value: nil, discount_percentage: 40.0, merchant_id: @merchant2.id)
@@ -113,8 +83,6 @@ RSpec.describe "Coupons of specific merchant", type: :request do
 
       get "/api/v1/merchants/#{@merchant2.id}/coupons?filter_status=active"
       filtered_active_coupons_data = JSON.parse(response.body, symbolize_names: true)
-
-      binding.pry
 
       expect(response).to be_successful
       expect(filtered_active_coupons_data[:data].length).to eq(4)
@@ -238,9 +206,6 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       }
       post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(new_coupon_info), headers: { "CONTENT_TYPE" => "application/json" }
       response_message = JSON.parse(response.body, symbolize_names: true)
-
-      # binding.pry
-
     end
 
     it "creates new inactive coupon regardless of number of active coupons" do
@@ -290,7 +255,7 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       # binding.pry
 
       expect(response).to_not be_successful
-      expect(error_message[:data]).to eq("Houston, we have a problem")    #Update later
+      expect(error_message[:data][:errors]).to eq(["Operation failed; attempted to set > 5 active coupons for merchant 'id'=#{@merchants[3].id}"])    #Update later
 
     end
 
@@ -308,7 +273,7 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       # binding.pry
 
       expect(response).to_not be_successful
-      expect(error_message).to eq({ data: "Ya can't set neither nor both value and percentage at once, fool!" })
+      expect(error_message[:data][:errors]).to eq(["You must set either 'discount_value' or 'discount_percentage' (exclusive) to null"])
 
       second_coupon_info = {
         name: "No discout, I guess",
@@ -321,7 +286,7 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       second_error_message = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to_not be_successful
-      expect(error_message).to eq({ data: "Ya can't set neither nor both value and percentage at once, fool!" })
+      expect(error_message[:data][:errors]).to eq(["You must set either 'discount_value' or 'discount_percentage' (exclusive) to null"])
     end
 
     it "sad path: fails to create if code is not unique" do
@@ -341,7 +306,7 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       error_message = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to_not be_successful
-      expect(error_message).to eq({ data: "You must specify a unique code" })
+      expect(error_message[:data][:errors]).to eq(["Code '#{identical_coupon_attributes[:code]}' already exists in database; you must create a unique code"])
 
       # binding.pry
       
@@ -380,13 +345,13 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       response_message1 = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to be_successful
-      expect(response_message1).to eq({ data: "Coupon activated" })
+      expect(response_message1[:data][:attributes][:status]).to eq(true)
 
       patch uri_request_deactivate, headers: headers
       response_message2 = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to be_successful
-      expect(response_message2).to eq({ data: "Coupon deactivated" })
+      expect(response_message2[:data][:attributes][:status]).to eq(false)
     end
 
     it "sad path: cannot activate specified coupon if >= 5 already exist" do
@@ -424,7 +389,7 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       response_message1 = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to_not be_successful
-      expect(response_message1).to eq({ data: "Ya can't deactivate it 'til it's processed, man!" })
+      expect(response_message1[:data][:errors]).to eq(["Operation failed; attemped to deactivate coupon being used on unprocessed invoice.  Please wait until invoice is complete"])
       # binding.pry
       #Now process invoice, show can deactivate as normal
       #Not sure this is working correctly.  Further, this is a security risk to allow outside direct var manipulation...perhaps it's auto-protecting from this without notifying me?
@@ -446,7 +411,7 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       response_message2 = JSON.parse(response.body, symbolize_names: true)
       
       expect(response).to be_successful
-      expect(response_message2).to eq({ data: "Coupon deactivated" })
+      expect(response_message2[:data][:attributes][:status]).to eq(false)
       # binding.pry
 
     end

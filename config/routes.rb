@@ -32,8 +32,7 @@ Rails.application.routes.draw do
   get "/api/v1/merchants/:merchant_id/customers", to: "api/v1/merchant_customers#index"
   get "/api/v1/merchants/:merchant_id/invoices", to: "api/v1/merchant_invoices#index"
 
-  #New routes for coupons
-  #NOTE: using 'merchant_id' instead of just 'id' since the latter is also need for specifying coupons later
+  #For coupons (of a specific merchant):
   get "/api/v1/merchants/:merchant_id/coupons", to: "api/v1/merchants/coupons#index"
   get "/api/v1/merchants/:merchant_id/coupons/:id", to: "api/v1/merchants/coupons#show"
   post "/api/v1/merchants/:merchant_id/coupons", to: "api/v1/merchants/coupons#create"
@@ -41,5 +40,4 @@ Rails.application.routes.draw do
   
   #For merchant invoices:
   get "api/v1/merchants/:merchant_id/invoices", to: "api/v1/merchant_invoices#index"
-
 end

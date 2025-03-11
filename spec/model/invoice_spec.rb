@@ -2,7 +2,6 @@ require 'rails_helper'
 
 describe Invoice, type: :model do
   before(:each) do
-    
     @merchant1 = Merchant.create!(name: "Barbara")
     @merchant2 = Merchant.create!(name: "Mark")
     @merchant3 = Merchant.create!(name: "Jackson")
@@ -43,7 +42,6 @@ describe Invoice, type: :model do
         expect(Invoice.filter_by_status("returned").count).to eq(1)
       end
     end
-
   end
 
   describe ".set_status tests" do

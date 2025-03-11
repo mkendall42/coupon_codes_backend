@@ -22,13 +22,18 @@ class Api::V1::Merchants::CouponsController < ApplicationController
   end
 
   def create
-    if !Coupon.verify_unique_code(params[:code])
+    if !Coupon.verify_unique_code(params[:code]) || params[:code] == ""
       render json: ErrorSerializer.illegal_operation("Code '#{params[:code]}' already exists in database; you must create a unique code"), status: :unprocessable_entity
       return
     end
 
+    if !params[:name] || params[:name] == ""
+      render json: ErrorSerializer.search_parameters_error("You must provide a non-empty 'name' string"), status: :unprocessable_entity
+      return
+    end
+
     #Check that discount_value XOR discount_percentage is provided
-    #This is my attempt at creating a proper XOR operator here (coerce to boolean, then usual logical XOR)
+    #This is my attempt at creating a proper XOR operator here (coerce values to boolean, then usual logical XOR)
     if !(!!params[:discount_value] ^ !!params[:discount_percentage])
       render json: ErrorSerializer.search_parameters_error("You must set either 'discount_value' or 'discount_percentage' (exclusive) to null"), status: :unprocessable_entity
       return

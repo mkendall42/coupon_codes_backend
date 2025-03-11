@@ -42,9 +42,7 @@ RSpec.describe "Coupons of specific merchant", type: :request do
         expect(coupon_data[:attributes][:name]).to be_a(String)
         expect(coupon_data[:attributes][:code]).to be_a(String)
         expect([true, false]).to include(coupon_data[:attributes][:status])
-        # expect(coupon_data[:attributes][:discount_value]).to be_a(Float)  #OR nil
         expect([Float, NilClass]).to include(coupon_data[:attributes][:discount_value].class)
-        # expect(coupon_data[:attributes][:discount_percentage]).to be_a(Float)  #OR nil
         expect([Float, NilClass]).to include(coupon_data[:attributes][:discount_percentage].class)
       end
     end
@@ -103,21 +101,12 @@ RSpec.describe "Coupons of specific merchant", type: :request do
 
   describe "#show tests" do
     it "locates and correctly renders single coupon info (2 examples)" do
-      #First example
-      #Somewhat hack-y fix:
-      # @coupons[1][]
       get "/api/v1/merchants/#{@merchants[1].id}/coupons/#{@coupons[1].id}"
       coupons_data1 = JSON.parse(response.body, symbolize_names: true)
 
-      # binding.pry
-
       expect(response).to be_successful
-      #Just once, check JSON structuring (esp. since :times_used should be present)
-
-      #Now check the data actually matches the record - iterate over the hash
       coupons_data1[:data][:attributes].each do |attribute, value|
-        # expect(@coupons[1][attribute]).to eq(value)
-        #NOTE: this is a very hack-y solution.  Don't know a better way for now, other than writing all lines out
+        #NOTE: this is a very hack-y solution.  Don't know a better way for now, other than writing all lines out, and I was trying to be fancier
         if attribute == :times_used
           expect(value).to eq(0)
         else
@@ -125,14 +114,11 @@ RSpec.describe "Coupons of specific merchant", type: :request do
         end
       end
 
-      #Second example
       get "/api/v1/merchants/#{@merchants[2].id}/coupons/#{@coupons[3].id}"
       coupons_data2 = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to be_successful
       coupons_data2[:data][:attributes].each do |attribute, value|
-        # expect(@coupons[3][attribute]).to eq(value)
-        #NOTE: need updating the times_used, since this is currently failing
         if attribute == :times_used
           expect(value).to eq(0)
         else
@@ -142,19 +128,12 @@ RSpec.describe "Coupons of specific merchant", type: :request do
     end
 
     it "correctly renders a count of how many times coupon has been used" do
-      #NOTE: what does it really mean for it to have been 'used'?
-      #I assume this means all invoices that are beyond 'pending' status?
-
-      #Complete an invoice a few times
-
       #Example 1 - first coupon (1 invoice uses it)
       get "/api/v1/merchants/#{@merchants[0].id}/coupons/#{@coupons[0].id}"
       coupon_data = JSON.parse(response.body, symbolize_names: true)
       
       expect(response).to be_successful
       expect(coupon_data[:data][:attributes][:times_used]).to eq(1)
-      
-      # binding.pry
       
       #Example 2 - check second coupon (2 invoices use it)
       get "/api/v1/merchants/#{@merchants[1].id}/coupons/#{@coupons[2].id}"
@@ -173,30 +152,23 @@ RSpec.describe "Coupons of specific merchant", type: :request do
     end
 
     it "sad path: appropriate error if invalid coupon or invalid merchant" do
-      #NOTE: do I need to check merchant again?  Techncially a different route than for #index, so maybe???
       nonexistant_coupon_id = 100000
       get "/api/v1/merchants/#{@merchants[0].id}/coupons/#{nonexistant_coupon_id}"
       error_message = JSON.parse(response.body, symbolize_names: true)
 
-      # binding.pry
-
       expected_response = {
         data: {
           message: "Coupon not found",
-          errors: ["Couldn't find Coupon with 'id'=#{nonexistant_coupon_id}"]   #Weird; exception sends extra SQL info this time (WHERE "").  Why?  Can I filter that out?
+          errors: ["Couldn't find Coupon with 'id'=#{nonexistant_coupon_id}"]   #Weird; exception sends extra SQL info this time (WHERE "").  Why?
         }
       }
-      expect(response).to_not be_successful     #Maybe check exact response code
+      expect(response).to_not be_successful
       expect(error_message[:data][:message]).to eq(expected_response[:data][:message])
     end
   end
 
   describe "#create tests" do
     it "can create a valid new coupon" do
-      #Happy path here (don't set active, or have it below threshold)
-
-      # binding.pry
-      
       new_coupon_info = {
         name: "Huge discount - 40% off any item",
         code: "40OFFWOW",
@@ -212,7 +184,6 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       @coupons << create_list(:coupon, 5, status: true, merchant: @merchants[3])
       @coupons.flatten
 
-      #First, check that there are exactly 5 active coupons present
       expect(@merchants[3].find_number_active_coupons).to eq(5)
       
       new_coupon_info = {
@@ -224,8 +195,6 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       }
       post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(new_coupon_info), headers: { "CONTENT_TYPE" => "application/json" }
       response_message = JSON.parse(response.body, symbolize_names: true)
-      
-      # binding.pry
 
       expected_response = {
         data: {
@@ -234,7 +203,7 @@ RSpec.describe "Coupons of specific merchant", type: :request do
           attributes: new_coupon_info
         }
       }
-      expect(response).to be_successful   #Status 201 - set this
+      expect(response).to be_successful
       expect(response_message).to eq(expected_response)
     end
 
@@ -252,11 +221,8 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(new_coupon_info), headers: { "CONTENT_TYPE" => "application/json" }
       error_message = JSON.parse(response.body, symbolize_names: true)
 
-      # binding.pry
-
       expect(response).to_not be_successful
       expect(error_message[:data][:errors]).to eq(["Operation failed; attempted to set > 5 active coupons for merchant 'id'=#{@merchants[3].id}"])    #Update later
-
     end
 
     it "sad path: fails to create if both discount_value and discount_percentage are supplied, or neither" do
@@ -269,8 +235,6 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       }
       post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(new_coupon_info), headers: { "CONTENT_TYPE" => "application/json" }
       error_message = JSON.parse(response.body, symbolize_names: true)
-
-      # binding.pry
 
       expect(response).to_not be_successful
       expect(error_message[:data][:errors]).to eq(["You must set either 'discount_value' or 'discount_percentage' (exclusive) to null"])
@@ -298,7 +262,6 @@ RSpec.describe "Coupons of specific merchant", type: :request do
         discount_percentage: nil
       }
       post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(identical_coupon_attributes), headers: { "CONTENT_TYPE" => "application/json" }
-      # second_error_message = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to be_successful
 
@@ -307,35 +270,32 @@ RSpec.describe "Coupons of specific merchant", type: :request do
 
       expect(response).to_not be_successful
       expect(error_message[:data][:errors]).to eq(["Code '#{identical_coupon_attributes[:code]}' already exists in database; you must create a unique code"])
-
-      # binding.pry
-      
     end
 
-    it "sad path: fails to create if certain information is missing" do
-      #Will alredy catch discount_ params, and code.  Also check name, maybe status (or default to false)?
+    it "sad path: fails to create if certain parameter(s) are missing" do
+      #Will already catch discount_* params, and code.  Also check name, maybe status (or default to false)?
       #Need to employ validation here...
+      incomplete_coupon_attributes = {
+        name: "",
+        code: "LEGITCODE",
+        status: true,
+        discount_value: nil,
+        discount_percentage: 90.0
+      }
 
+      post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(incomplete_coupon_attributes), headers: { "CONTENT_TYPE" => "application/json" }
+      error_message = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to_not be_successful
+      expect(error_message[:data][:errors]).to eq(["You must provide a non-empty 'name' string"])
     end
-
-    #Do I need to check for nonexistant merchant AGAIN?
-
   end
 
   describe "#update tests (setting coupon active/inactive)" do
     it "can change status of coupon (inactive->active, and vice versa)" do
-      #For here, just need basic coupon, invoice setup (nothing fancy)
-      #Because factories aren't set up right yet, have these manually here:
-      # @merchant1 = Merchant.create!(name: "Midwest Tungsten Service")
-      # @merchant2 = Merchant.create!(name: "Schrodinger, Born, and Oppenheimer")
-      # @coupon1 = Coupon.create!(name: "Basic discount", code: "GET10OFF", status: false, discount_value: 10.00, discount_percentage: nil, merchant_id: @merchant1.id)
-      # @coupon2 = Coupon.create!(name: "Big % discount", code: "GET30OFF", status: true, discount_value: nil, discount_percentage: 30.0, merchant_id: @merchant2.id)
       @customer1 = Customer.create!(first_name: "Marcus", last_name: "Aurelius")
       @invoice1 = Invoice.create!(status: "shipped", coupon_id: @coupon1.id, merchant_id: @merchant1.id, customer_id: @customer1.id)
       @invoice2 = Invoice.create!(status: "returned", coupon_id: @coupon1.id, merchant_id: @merchant1.id, customer_id: @customer1.id)
-      # @invoice3 = Invoice.create!(status: "shipped", coupon_id: @coupon2.id, merchant_id: @merchant2.id, customer_id: @customer1.id)
-
-      # binding.pry
 
       headers = {"CONTENT_TYPE" => "application/json"}
       uri_request_activate = "/api/v1/merchants/#{@merchant1.id}/coupons/#{@coupon1.id}?status=active"
@@ -368,12 +328,8 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       patch uri_request_activate, headers: headers
       response_message = JSON.parse(response.body, symbolize_names: true)
 
-      # binding.pry
-
-      #WRITE THESE CORRECTLY
-      # expect(response).to be_successful
-      # expect(response_message).to eq({ data: "hi" })
-
+      expect(response).to_not be_successful
+      expect(response_message[:data][:errors]).to eq(["Operation failed; attempted to set > 5 active coupons for merchant 'id'=#{@merchant2.id}"])
     end
 
     it "sad path: cannot deactivate coupon until invoice has completed" do
@@ -390,35 +346,17 @@ RSpec.describe "Coupons of specific merchant", type: :request do
 
       expect(response).to_not be_successful
       expect(response_message1[:data][:errors]).to eq(["Operation failed; attemped to deactivate coupon being used on unprocessed invoice.  Please wait until invoice is complete"])
-      # binding.pry
-      #Now process invoice, show can deactivate as normal
-      #Not sure this is working correctly.  Further, this is a security risk to allow outside direct var manipulation...perhaps it's auto-protecting from this without notifying me?
-      #Well, I think it's working now, but it's very hacky and again I'm worried about the security risk of direct access like that.
+
+      #Manually process the invoice.  This feels very hacky and I'm worried about the security risk of direct access like that.
       #Is there a way to "seal off" these things?  At least a scope for set_status?
       @invoice2.set_status("shipped")
       @invoice2.save
-      #VERY WEIRD: even inside controller scope, I can modify params e.g. status, and it
-      #will show me the status is updated, but then when I query the DB, it's not there.
-      #Is it not actually committing it to the DB?  Do I need to run update()?
-      #This would also mean I need to write InvoiceController#update, argh!
-
-      #CONCLUSION: this seems to all be sourcing from require(:coupon) in params.  Sometimes
-      #it is pressent / works, sometimes it is not.  Perhaps due to nesting issue with Merchant,
-      #or something else?  Could ask in OH I guess...
-      # binding.pry
       
       patch uri_request_deactivate, headers: headers
       response_message2 = JSON.parse(response.body, symbolize_names: true)
       
       expect(response).to be_successful
       expect(response_message2[:data][:attributes][:status]).to eq(false)
-      # binding.pry
-
     end
-
-    #If allowed to change other attributes, add tests here
-
   end
-
-
 end

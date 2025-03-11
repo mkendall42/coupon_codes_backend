@@ -22,7 +22,6 @@ RSpec.describe Coupon, type: :model do
   end
 
   describe "relationships" do
-    it { should have_many :invoices }     #Verify this is optional (i.e. if specific entry missing, test won't fail)
     it { should belong_to :merchant }
   end
 

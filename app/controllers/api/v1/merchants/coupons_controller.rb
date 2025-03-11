@@ -8,8 +8,17 @@ class Api::V1::Merchants::CouponsController < ApplicationController
 
     # binding.pry
 
-    # merchant_coupons = Merchant.find(params[:id]).coupons
-    merchant_coupons = Merchant.find(params[:merchant_id]).coupons
+    #Filter results if query param specified
+    #MOVE TO OBJECT MODEL SOON!!!
+    if params[:filter_status] == "active"
+      # binding.pry
+      merchant_coupons = Merchant.find(params[:merchant_id]).coupons.where(status: true)
+    elsif params[:filter_status] == "inactive"
+      merchant_coupons = Merchant.find(params[:merchant_id]).coupons.where(status: false)
+    else
+      # merchant_coupons = Merchant.find(params[:id]).coupons
+      merchant_coupons = Merchant.find(params[:merchant_id]).coupons
+    end
 
     #Will need a new serializer for this
     render json: CouponSerializer.new(merchant_coupons)

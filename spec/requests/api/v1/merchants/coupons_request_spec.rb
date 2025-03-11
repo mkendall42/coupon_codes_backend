@@ -104,6 +104,33 @@ RSpec.describe "Coupons of specific merchant", type: :request do
 
     #What about testing that if a merchant is deleted, so are all coupons?  Perhaps put in main merchant controller tests...
 
+    it "filters list based on status (active/inactive)" do
+      @coupon3 = Coupon.create!(name: "Big % discount", code: "GET40OFF", status: true, discount_value: nil, discount_percentage: 40.0, merchant_id: @merchant2.id)
+      @coupon4 = Coupon.create!(name: "Big % discount", code: "GET50OFF", status: true, discount_value: nil, discount_percentage: 50.0, merchant_id: @merchant2.id)
+      @coupon5 = Coupon.create!(name: "Big % discount", code: "GET60OFF", status: false, discount_value: nil, discount_percentage: 60.0, merchant_id: @merchant2.id)
+      @coupon6 = Coupon.create!(name: "Big % discount", code: "GET70OFF", status: true, discount_value: nil, discount_percentage: 70.0, merchant_id: @merchant2.id)
+      @coupon7 = Coupon.create!(name: "Big % discount", code: "GET80OFF", status: false, discount_value: nil, discount_percentage: 80.0, merchant_id: @merchant2.id)
+
+      get "/api/v1/merchants/#{@merchant2.id}/coupons?filter_status=active"
+      filtered_active_coupons_data = JSON.parse(response.body, symbolize_names: true)
+
+      # binding.pry
+
+      expect(response).to be_successful
+      expect(filtered_active_coupons_data[:data].length).to eq(4)
+      expect(filtered_active_coupons_data[:data][0][:id].to_i).to eq(@coupon2.id)
+      expect(filtered_active_coupons_data[:data][1][:id].to_i).to eq(@coupon3.id)
+      expect(filtered_active_coupons_data[:data][2][:id].to_i).to eq(@coupon4.id)
+      expect(filtered_active_coupons_data[:data][3][:id].to_i).to eq(@coupon6.id)
+
+      get "/api/v1/merchants/#{@merchant2.id}/coupons?filter_status=inactive"
+      filtered_active_coupons_data = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to be_successful
+      expect(filtered_active_coupons_data[:data].length).to eq(2)
+      expect(filtered_active_coupons_data[:data][0][:id].to_i).to eq(@coupon5.id)
+      expect(filtered_active_coupons_data[:data][1][:id].to_i).to eq(@coupon7.id)
+    end
   end
 
   describe "#show tests" do

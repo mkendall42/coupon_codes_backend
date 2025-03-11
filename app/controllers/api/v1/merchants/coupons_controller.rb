@@ -10,14 +10,18 @@ class Api::V1::Merchants::CouponsController < ApplicationController
 
     #Filter results if query param specified
     #MOVE TO OBJECT MODEL SOON!!!
+    merchant = Merchant.find(params[:merchant_id])
+
     if params[:filter_status] == "active"
       # binding.pry
-      merchant_coupons = Merchant.find(params[:merchant_id]).coupons.where(status: true)
+      merchant_coupons = merchant.get_coupons_by_status(true)
+      # merchant_coupons = Merchant.find(params[:merchant_id]).coupons.where(status: true)
     elsif params[:filter_status] == "inactive"
-      merchant_coupons = Merchant.find(params[:merchant_id]).coupons.where(status: false)
+      merchant_coupons = merchant.get_coupons_by_status(false)
+      # merchant_coupons = Merchant.find(params[:merchant_id]).coupons.where(status: false)
     else
       # merchant_coupons = Merchant.find(params[:id]).coupons
-      merchant_coupons = Merchant.find(params[:merchant_id]).coupons
+      merchant_coupons = merchant.coupons
     end
 
     #Will need a new serializer for this

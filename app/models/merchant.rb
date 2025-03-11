@@ -20,9 +20,13 @@ class Merchant < ApplicationRecord
     where("name ILIKE ?", "%#{search_string}%").order(:name)
   end
 
-  def find_number_active_coupons
+  def get_coupons_by_status(status)
     #NOTE: status = true is active, false is inactive (should've named table column active_status)
     # Merchant.find(current_merchant_id).coupons.where(status: true).count
+    coupons.where(status: status)
+  end
+
+  def find_number_active_coupons
     coupons.where(status: true).count
   end
 

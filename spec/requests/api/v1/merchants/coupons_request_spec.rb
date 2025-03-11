@@ -95,7 +95,7 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       expected_response = {
         data: {
           message: "Coupon not found",
-          errors: ["Couldn't find Coupon with 'id'=#{nonexistant_id}"]
+          errors: ["Couldn't find Merchant with 'id'=#{nonexistant_id}"]
         }
       }
       expect(response).to_not be_successful     #Maybe check exact code

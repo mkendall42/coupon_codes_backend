@@ -2,7 +2,7 @@ class Merchant < ApplicationRecord
   has_many :invoices, dependent: :destroy
   has_many :items, dependent: :destroy
   has_many :customers, through: :invoices
-  has_many :coupons                         #Set up destroy callback?  Or keep 'em?
+  has_many :coupons
 
   def self.sorted_by_age
     order(created_at: :desc)
@@ -21,8 +21,7 @@ class Merchant < ApplicationRecord
   end
 
   def get_coupons_by_status(status)
-    #NOTE: status = true is active, false is inactive (should've named table column active_status)
-    # Merchant.find(current_merchant_id).coupons.where(status: true).count
+    #NOTE: status = true is active, false is inactive
     coupons.where(status: status)
   end
 
@@ -31,7 +30,6 @@ class Merchant < ApplicationRecord
   end
 
   def coupons_count
-    #Total number of coupons assigned to merchant
     coupons.count
   end
 

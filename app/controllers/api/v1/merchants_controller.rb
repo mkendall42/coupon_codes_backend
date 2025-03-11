@@ -41,7 +41,6 @@ class Api::V1::MerchantsController < ApplicationController
   private
 
   def merchant_update_params
-    #Only accept name as updateable (per requirements)
     params.require(:merchant).permit(:name)
   end
 

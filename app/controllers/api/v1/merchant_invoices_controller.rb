@@ -13,7 +13,7 @@ class Api::V1::MerchantInvoicesController < ApplicationController
       invoices = merchant.invoices.all
     end
 
-    #Renders all invoices from merchant (including coupon_id == null), since sample from project requirements showed this.
+    #Renders all invoices from merchant (including coupon_id == null), since example from project requirements showed this.
     render json: InvoiceSerializer.new(invoices, { params: { coupon_id: true } })
   end
 end

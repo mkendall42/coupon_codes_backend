@@ -9,7 +9,6 @@ RSpec.describe Merchant, type: :model do
     @merchant3 = Merchant.create!(name: "Jackson")
     @merchant4 = Merchant.create!(name: "Jason")
 
-    #Hopefully these are safe up here...(all belong to merchant 4 for now)
     @coupon1 = Coupon.create!(name: "Big % discount", code: "GET40OFF", status: true, discount_value: nil, discount_percentage: 40.0, merchant_id: @merchant4.id)
     @coupon2 = Coupon.create!(name: "Big % discount", code: "GET50OFF", status: true, discount_value: nil, discount_percentage: 50.0, merchant_id: @merchant4.id)
     @coupon3 = Coupon.create!(name: "Big % discount", code: "GET60OFF", status: false, discount_value: nil, discount_percentage: 60.0, merchant_id: @merchant4.id)
@@ -22,7 +21,6 @@ RSpec.describe Merchant, type: :model do
     it { should have_many :items }
     it { should have_many :invoices }
     it { should have_many :coupons }
-    #I assume 'customers' not done here due to join / through: ?
   end
 
   describe ".sorted_by_age" do
@@ -90,7 +88,7 @@ RSpec.describe Merchant, type: :model do
 
   describe ".get_coupons_by_status" do
     it "correctly finds all inactive coupons" do
-      #Wow - can convert to an array!  Wish I knew this earier...
+      #Whoa - can convert an AR object to an array (and without pluck)!  Wish I knew this earier...
       expect(@merchant4.get_coupons_by_status(false).to_a).to eq([@coupon3, @coupon5])
     end
 
@@ -101,7 +99,6 @@ RSpec.describe Merchant, type: :model do
 
   describe ".invoice_coupon_count" do
     it "counts number of invoices utilizing a coupon of merchant" do
-      #Need to create a few invoices for this scenario
       customer = Customer.create(first_name: "Todd", last_name: "Kobel")
       invoice1 = @merchant4.invoices.create!(status: "returned", customer_id: customer.id, coupon_id: @coupon2.id)
       invoice2 = @merchant4.invoices.create!(status: "shipped", customer_id: customer.id, coupon_id: @coupon3.id)
@@ -111,5 +108,4 @@ RSpec.describe Merchant, type: :model do
       expect(@merchant4.invoice_coupon_count).to eq(3)
     end
   end
-
 end

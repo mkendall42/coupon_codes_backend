@@ -1,6 +1,4 @@
 class ErrorSerializer
-  #This handles general error returns to be aligned with BE requirements doc
-
   def self.handle_exception(exception, custom_message)
     #Check if exception.message is already an array of strings; if not, make it so
     if exception.message.class != Array
@@ -43,5 +41,4 @@ class ErrorSerializer
       }
     }
   end
-
 end

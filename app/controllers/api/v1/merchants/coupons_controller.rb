@@ -13,9 +13,7 @@ class Api::V1::Merchants::CouponsController < ApplicationController
       merchant_coupons = merchant.coupons
     end
 
-    #Will need a new serializer for this
     render json: CouponSerializer.new(merchant_coupons)
-
   end
 
   def show
@@ -26,8 +24,6 @@ class Api::V1::Merchants::CouponsController < ApplicationController
   def create
     if !Coupon.verify_unique_code(params[:code])
       render json: ErrorSerializer.illegal_operation("Code '#{params[:code]}' already exists in database; you must create a unique code"), status: :unprocessable_entity
-      # render json: { data: "You must specify a unique code" }, status: :unprocessable_entity
-      #Fancier: could return a suggestion for a unique code in the JSON response...
       return
     end
 
@@ -35,7 +31,6 @@ class Api::V1::Merchants::CouponsController < ApplicationController
     #This is my attempt at creating a proper XOR operator here (coerce to boolean, then usual logical XOR)
     if !(!!params[:discount_value] ^ !!params[:discount_percentage])
       render json: ErrorSerializer.search_parameters_error("You must set either 'discount_value' or 'discount_percentage' (exclusive) to null"), status: :unprocessable_entity
-      # render json: { data: "Ya can't set neither nor both value and percentage at once, fool!"}, status: :unprocessable_entity
       return
     end
 
@@ -43,9 +38,8 @@ class Api::V1::Merchants::CouponsController < ApplicationController
 
     if params[:status] == true && merchant.find_number_active_coupons >= 5
       render json: ErrorSerializer.illegal_operation("Operation failed; attempted to set > 5 active coupons for merchant 'id'=#{merchant.id}"), status: :unprocessable_entity
-      # render json: { data: "Houston, we have a problem" }, status: :unprocessable_entity
     else
-      #Necessary to create the coupon via the merchant, or validation / other indirect errors occur (that was 'fun' to troubleshoot)
+      #It is necessary to create the coupon via the merchant, or validation / other indirect errors occur (that was 'fun' to troubleshoot)
       new_coupon = Merchant.find(params[:merchant_id]).coupons.create!(coupon_params_create)
 
       render json: CouponSerializer.new(new_coupon), status: :created
@@ -55,29 +49,24 @@ class Api::V1::Merchants::CouponsController < ApplicationController
   def update
     if params[:status]
       coupon = Coupon.find(params[:id])
-      # coupon.set_status(params[:status])
 
       if params[:status] == "active" && coupon.status == false
         if coupon.merchant.find_number_active_coupons >= 5
           render json: ErrorSerializer.illegal_operation("Operation failed; attempted to set > 5 active coupons for merchant 'id'=#{coupon.merchant.id}"), status: :unprocessable_entity
-          # render json: { data: "too many active already yo" }, status: :unprocessable_entity
         else
           #Activate it!
           params[:status] = true
           updated_coupon = Coupon.update!(params[:id], coupon_params_update)
           render json: CouponSerializer.new(updated_coupon)
-          # render json: { data: "Coupon activated" }
         end
       elsif params[:status] == "inactive" && coupon.status == true
         if coupon.pending_invoices?
           render json: ErrorSerializer.illegal_operation("Operation failed; attemped to deactivate coupon being used on unprocessed invoice.  Please wait until invoice is complete"), status: :unprocessable_entity
-          # render json: { data: "Ya can't deactivate it 'til it's processed, man!" }, status: :unprocessable_entity
         else
           #Deactivate it!
           params[:status] = false
           updated_coupon = Coupon.update!(params[:id], coupon_params_update)
           render json: CouponSerializer.new(updated_coupon)
-          # render json: { data: "Coupon deactivated" }
         end
       else
         #Either nothing was changed, or got a bad input string here, generate an appropriate error
@@ -97,7 +86,6 @@ class Api::V1::Merchants::CouponsController < ApplicationController
     params.permit(:status, :name)
   end
 
-  #Later: refactor into main class (esp since this repeats MerchantController exactly)
   def coupon_not_found(exception)
     render json: ErrorSerializer.handle_exception(exception, "Coupon not found"), status: :not_found
   end

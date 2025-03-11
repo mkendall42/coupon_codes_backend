@@ -25,4 +25,14 @@ class Merchant < ApplicationRecord
     # Merchant.find(current_merchant_id).coupons.where(status: true).count
     coupons.where(status: true).count
   end
+
+  def coupons_count
+    #Total number of coupons assigned to merchant
+    coupons.count
+  end
+
+  def invoice_coupon_count
+    #Total number of merchant's invoices that used one of the coupons
+    invoices.where.not(coupon_id: nil).count
+  end
 end

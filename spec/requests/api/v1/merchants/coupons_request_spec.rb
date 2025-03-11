@@ -114,7 +114,7 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       get "/api/v1/merchants/#{@merchant2.id}/coupons?filter_status=active"
       filtered_active_coupons_data = JSON.parse(response.body, symbolize_names: true)
 
-      # binding.pry
+      binding.pry
 
       expect(response).to be_successful
       expect(filtered_active_coupons_data[:data].length).to eq(4)

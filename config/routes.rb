@@ -41,5 +41,5 @@ Rails.application.routes.draw do
   
   #For merchant invoices:
   get "api/v1/merchants/:merchant_id/invoices", to: "api/v1/merchant_invoices#index"
-  
+
 end

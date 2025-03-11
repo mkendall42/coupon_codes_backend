@@ -54,6 +54,42 @@ RSpec.describe "Merchants endpoints", type: :request do
 
       expect(merchants[:data].first[:attributes][:item_count]).to be_an(Integer)
     end
+
+    it "coupon update: displays merchant coupon count and invoice count using coupons" do
+      #Create more invoices to test here specifically (and not mess with main config)
+      @coupon1 = Coupon.create!(name: "Basic discount", code: "GET10OFF", status: false, discount_value: 10.00, discount_percentage: nil, merchant_id: @merchant1.id)
+      @coupon2 = Coupon.create!(name: "Big % discount", code: "GET30OFF", status: true, discount_value: nil, discount_percentage: 30.0, merchant_id: @merchant2.id)
+      @coupon3 = Coupon.create!(name: "Malfunctioning Eddie's best deal", code: "GIVEAWAY80", status: true, discount_value: nil, discount_percentage: 80.0, merchant_id: @merchant2.id)
+      @invoice5 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped", coupon_id: @coupon1.id)
+      @invoice6 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant1.id, status: "shipped")
+      @invoice7 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant2.id, status: "shipped", coupon_id: @coupon2.id)
+      @invoice8 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant2.id, status: "shipped", coupon_id: @coupon3.id)
+      @invoice9 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant3.id, status: "shipped")
+
+      get "/api/v1/merchants?coupon_info=true"
+
+      merchant_data = JSON.parse(response.body, symbolize_names: true)
+
+      binding.pry
+
+      expect(response).to be_successful
+      merchant_data[:data].each do |merchant|
+        expect(merchant[:id].to_i).to be_a(Integer)
+        expect(merchant[:type]).to eq("merchant")
+        expect(merchant[:attributes]).to be_a(Hash)
+        expect(merchant[:attributes][:name]).to be_a(String)
+        expect(merchant[:attributes][:coupons_count]).to be_a(Integer)
+        expect(merchant[:attributes][:invoice_coupon_count]).to be_a(Integer)
+      end
+      expect(merchant_data[:data][0][:attributes][:coupons_count]).to eq(1)
+      expect(merchant_data[:data][0][:attributes][:invoice_coupon_count]).to eq(1)
+      expect(merchant_data[:data][1][:attributes][:coupons_count]).to eq(2)
+      expect(merchant_data[:data][1][:attributes][:invoice_coupon_count]).to eq(2)
+      expect(merchant_data[:data][2][:attributes][:coupons_count]).to eq(0)
+      expect(merchant_data[:data][2][:attributes][:invoice_coupon_count]).to eq(0)
+      expect(merchant_data[:data][3][:attributes][:coupons_count]).to eq(0)
+      expect(merchant_data[:data][3][:attributes][:invoice_coupon_count]).to eq(0)
+    end
   end
 
   describe "#update (patch) tests" do

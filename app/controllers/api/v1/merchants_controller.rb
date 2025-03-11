@@ -13,7 +13,7 @@ class Api::V1::MerchantsController < ApplicationController
       merchants = Merchant.has_returned_items
     end
 
-    render json: MerchantSerializer.new(merchants, { params: { count: params[:count] } })
+    render json: MerchantSerializer.new(merchants, { params: { count: params[:count], coupon_info: params[:coupon_info] } })
   end
 
   

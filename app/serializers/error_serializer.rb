@@ -35,4 +35,13 @@ class ErrorSerializer
     }
   end
 
+  def self.illegal_operation(message)
+    {
+      data: {
+        message: "Illegal attempted operation based on current database state",
+        errors: [message]
+      }
+    }
+  end
+
 end

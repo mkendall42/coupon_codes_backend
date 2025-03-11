@@ -13,7 +13,7 @@ class Coupon < ApplicationRecord
     # return 3      #Just for testing right now, adjust later!
   end
 
-  def set_status(new_status)
+  # def set_status(new_status)
     #If setting inactive->active, must check that < 5 are already active for merchant
     #If setting active->inactive, must check that there are no associated pending invoice(s)
 
@@ -42,7 +42,7 @@ class Coupon < ApplicationRecord
     #   render json: { data: "uh oh, hit the else" }, status: 404
     # end
 
-  end
+  # end
 
   # def find_number_active_coupons
   #   #NOTE: status = true is active, false is inactive (should've named table column active_status)

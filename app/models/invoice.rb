@@ -16,8 +16,8 @@ class Invoice < ApplicationRecord
   end
 
   def set_status(new_status)
-    # binding.pry
     #NOTE: why is the 'self' required here?  Something specific to Rails?
-    self.status = new_status
+    #ALSO: validation is apparently not automatic; I had to add manual help...
+    self.status = new_status if ["packaged", "shipped", "returned"].include?(new_status) 
   end
 end

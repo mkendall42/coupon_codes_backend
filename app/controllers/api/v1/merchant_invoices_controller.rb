@@ -13,10 +13,6 @@ class Api::V1::MerchantInvoicesController < ApplicationController
       invoices = merchant.invoices.all
     end
 
-    # binding.pry
-
-    #For this project: serializer updated to add coupon_id if associated
-    # render json: InvoiceSerializer.new(invoices)
     render json: InvoiceSerializer.new(invoices, { params: { coupon_id: true } })
   end
 end

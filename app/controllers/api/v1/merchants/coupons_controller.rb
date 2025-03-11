@@ -57,12 +57,12 @@ class Api::V1::Merchants::CouponsController < ApplicationController
       render json: { data: "Houston, we have a problem" }, status: :unprocessable_entity
       # Merchant.find(params[:merchant_id])
     else
-      #NOTE: failing validation due to nonexistant merchant.  I assume it's because of coupon_params()...
-      # new_coupon = Coupon.create!(coupon_params)
+      #NOTE: failing validation due to nonexistant merchant.  I assume it's because of coupon_params_create()...
+      # new_coupon = Coupon.create!(coupon_params_create)
       # params.permit!
       # new_coupon = Coupon.create!(params)
       #GOOD GRIEF THAT TOOK LONGER TO DO THAN I WANT TO ADMIT...
-      new_coupon = Merchant.find(params[:merchant_id]).coupons.create!(coupon_params)
+      new_coupon = Merchant.find(params[:merchant_id]).coupons.create!(coupon_params_create)
 
       render json: CouponSerializer.new(new_coupon), status: :created
     end
@@ -71,8 +71,12 @@ class Api::V1::Merchants::CouponsController < ApplicationController
   def update
     #NOTE: for now, this will ONLY update 'status' via a query.
     #TO ASK: should we even allow changing other things?  You're kinda messing with the 'identity' of the coupon at that point...
-    
-    binding.pry
+
+    #WEIRD: this will run up here, but apparently not down within the if/else logic?!?!!
+
+    # updated_coupon = Coupon.update!(params[:id], coupon_params_update)
+
+    # binding.pry
 
     if params[:status]
       coupon = Coupon.find(params[:id])
@@ -83,14 +87,23 @@ class Api::V1::Merchants::CouponsController < ApplicationController
           render json: { data: "too many active already yo" }, status: :unprocessable_entity
         else
           #Activate it!
-          render json: { data: "hi" }
+          # coupon.update!(coupon_params_update)
+          #Here it is throwing an error...why?
+          params[:status] = true
+          updated_coupon = Coupon.update!(params[:id], coupon_params_update)
+          render json: { data: "Coupon activated" }
         end
       elsif params[:status] == "inactive" && coupon.status == true
+
+        # binding.pry
+
         if coupon.invoices.where(status: "packaged").count > 0
           render json: { data: "Ya can't deactivate it 'til it's processed, man!" }, status: :unprocessable_entity
         else
           #Deactivate it!
-          render json: { data: "hi" }
+          params[:status] = false
+          updated_coupon = Coupon.update!(params[:id], coupon_params_update)
+          render json: { data: "Coupon deactivated" }
         end
       else
         #Either nothing was changed, or got a bad input string here, generate an appropriate error
@@ -103,8 +116,15 @@ class Api::V1::Merchants::CouponsController < ApplicationController
 
   private
 
-  def coupon_params
+  def coupon_params_create
     params.require(:coupon).permit(:name, :code, :status, :discount_value, :discount_percentage, :merchant_id)
+  end
+  
+  def coupon_params_update
+    #Might allow more params later, but this is all we need for now...
+    # params.require(:coupon).permit(:status, :name)
+    # params.permit(:status, :name)
+    params.permit(:status)
   end
 
   #Later: refactor into main class (esp since this repeats MerchantController exactly)

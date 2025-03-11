@@ -278,7 +278,7 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       post "/api/v1/merchants/#{@merchants[3].id}/coupons", params: JSON.generate(new_coupon_info), headers: { "CONTENT_TYPE" => "application/json" }
       error_message = JSON.parse(response.body, symbolize_names: true)
 
-      binding.pry
+      # binding.pry
 
       expect(response).to_not be_successful
       expect(error_message).to eq({ data: "Ya can't set neither nor both value and percentage at once, fool!" })
@@ -353,33 +353,74 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       response_message1 = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to be_successful
-      expect(response_message1).to eq({ data: "hi" })
+      expect(response_message1).to eq({ data: "Coupon activated" })
 
       patch uri_request_deactivate, headers: headers
       response_message2 = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to be_successful
-      expect(response_message2).to eq({ data: "hi" })
+      expect(response_message2).to eq({ data: "Coupon deactivated" })
     end
 
     it "sad path: cannot activate specified coupon if >= 5 already exist" do
-      #Need to add more pre-activated coupons in advance to test this
+      #Create exactly 5 pre-activated coupons in advance to test this
+      @customer1 = Customer.create!(first_name: "Marcus", last_name: "Aurelius")
+      @coupon3 = Coupon.create!(name: "Big % discount", code: "GET40OFF", status: true, discount_value: nil, discount_percentage: 40.0, merchant_id: @merchant2.id)
+      @coupon4 = Coupon.create!(name: "Big % discount", code: "GET50OFF", status: true, discount_value: nil, discount_percentage: 50.0, merchant_id: @merchant2.id)
+      @coupon5 = Coupon.create!(name: "Big % discount", code: "GET60OFF", status: false, discount_value: nil, discount_percentage: 60.0, merchant_id: @merchant2.id)
+      @coupon6 = Coupon.create!(name: "Big % discount", code: "GET70OFF", status: true, discount_value: nil, discount_percentage: 70.0, merchant_id: @merchant2.id)
+      @coupon7 = Coupon.create!(name: "Big % discount", code: "GET80OFF", status: true, discount_value: nil, discount_percentage: 80.0, merchant_id: @merchant2.id)
       
-
+      headers = {"CONTENT_TYPE" => "application/json"}
+      uri_request_activate = "/api/v1/merchants/#{@merchant2.id}/coupons/#{@coupon5.id}?status=active"
       patch uri_request_activate, headers: headers
-      response_message1 = JSON.parse(response.body, symbolize_names: true)
+      response_message = JSON.parse(response.body, symbolize_names: true)
 
-      expect(response).to be_successful
-      expect(response_message1).to eq({ data: "hi" })
+      # binding.pry
+
+      #WRITE THESE CORRECTLY
+      # expect(response).to be_successful
+      # expect(response_message).to eq({ data: "hi" })
 
     end
 
     it "sad path: cannot deactivate coupon until invoice has completed" do
       #Set up invoice(s) assigned
+      @customer1 = Customer.create!(first_name: "Marcus", last_name: "Aurelius")
+      @invoice1 = Invoice.create!(status: "shipped", coupon_id: @coupon2.id, merchant_id: @merchant2.id, customer_id: @customer1.id)
+      @invoice2 = Invoice.create!(status: "packaged", coupon_id: @coupon2.id, merchant_id: @merchant2.id, customer_id: @customer1.id)
 
       #Verify cannot deactivate
+      headers = {"CONTENT_TYPE" => "application/json"}
+      uri_request_deactivate = "/api/v1/merchants/#{@merchant2.id}/coupons/#{@coupon2.id}?status=inactive"
+      patch uri_request_deactivate, headers: headers
+      response_message1 = JSON.parse(response.body, symbolize_names: true)
 
+      expect(response).to_not be_successful
+      expect(response_message1).to eq({ data: "Ya can't deactivate it 'til it's processed, man!" })
+      # binding.pry
       #Now process invoice, show can deactivate as normal
+      #Not sure this is working correctly.  Further, this is a security risk to allow outside direct var manipulation...perhaps it's auto-protecting from this without notifying me?
+      #Well, I think it's working now, but it's very hacky and again I'm worried about the security risk of direct access like that.
+      #Is there a way to "seal off" these things?  At least a scope for set_status?
+      @invoice2.set_status("shipped")
+      @invoice2.save
+      #VERY WEIRD: even inside controller scope, I can modify params e.g. status, and it
+      #will show me the status is updated, but then when I query the DB, it's not there.
+      #Is it not actually committing it to the DB?  Do I need to run update()?
+      #This would also mean I need to write InvoiceController#update, argh!
+
+      #CONCLUSION: this seems to all be sourcing from require(:coupon) in params.  Sometimes
+      #it is pressent / works, sometimes it is not.  Perhaps due to nesting issue with Merchant,
+      #or something else?  Could ask in OH I guess...
+      # binding.pry
+      
+      patch uri_request_deactivate, headers: headers
+      response_message2 = JSON.parse(response.body, symbolize_names: true)
+      
+      expect(response).to be_successful
+      expect(response_message2).to eq({ data: "Coupon deactivated" })
+      # binding.pry
 
     end
 

@@ -14,4 +14,10 @@ class Invoice < ApplicationRecord
   def self.filter_by_status(status)
     where(status: status)
   end
+
+  def set_status(new_status)
+    # binding.pry
+    #NOTE: why is the 'self' required here?  Something specific to Rails?
+    self.status = new_status
+  end
 end

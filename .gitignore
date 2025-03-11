@@ -37,3 +37,6 @@ coverage/
 
 #My own planning / meta file:
 planning.md
+
+#Misc seed data for devel environment
+seed_data_development.txt

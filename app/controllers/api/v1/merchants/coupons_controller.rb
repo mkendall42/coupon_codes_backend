@@ -110,7 +110,7 @@ class Api::V1::Merchants::CouponsController < ApplicationController
 
         # binding.pry
 
-        if coupon.invoices.where(status: "packaged").count > 0
+        if coupon.pending_invoices?
           render json: { data: "Ya can't deactivate it 'til it's processed, man!" }, status: :unprocessable_entity
         else
           #Deactivate it!

@@ -59,6 +59,10 @@ class Coupon < ApplicationRecord
     return false
   end
 
+  def pending_invoices?
+    invoices.where(status: "packaged").count > 0
+  end
+
 #   #Generate a new unique code - should this be instance or class method?
 #   def generate_unique_code
 #     #Useful for FactoryBot or if user later desires it (extension)

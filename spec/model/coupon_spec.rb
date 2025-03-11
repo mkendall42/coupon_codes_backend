@@ -14,10 +14,11 @@ RSpec.describe Coupon, type: :model do
     @customer = Customer.create(first_name: "Todd", last_name: "Kobel")
 
     @invoice1 = @merchant1.invoices.create!(status: "returned", customer_id: @customer.id, coupon_id: @coupon2.id)
-    @invoice2 = @merchant1.invoices.create!(status: "shipped", customer_id: @customer.id, coupon_id: @coupon2.id)
+    @invoice2 = @merchant1.invoices.create!(status: "packaged", customer_id: @customer.id, coupon_id: @coupon2.id)
     @invoice3 = @merchant1.invoices.create!(status: "packaged", customer_id: @customer.id, coupon_id: @coupon2.id)
     @invoice4 = @merchant1.invoices.create!(status: "shipped", customer_id: @customer.id, coupon_id: @coupon4.id)
-    @invoice5 = @merchant1.invoices.create!(status: "shipped", customer_id: @customer.id, coupon_id: @coupon4.id)
+    @invoice5 = @merchant1.invoices.create!(status: "packaged", customer_id: @customer.id, coupon_id: @coupon4.id)
+    @invoice6 = @merchant1.invoices.create!(status: "shipped", customer_id: @customer.id, coupon_id: @coupon5.id)
   end
 
   describe "relationships" do
@@ -29,7 +30,7 @@ RSpec.describe Coupon, type: :model do
     it "determines correct number of times a specific coupon has been used (3 examples)" do
       expect(@coupon2.times_used).to eq(3)
       expect(@coupon4.times_used).to eq(2)
-      expect(@coupon5.times_used).to eq(0)
+      expect(@coupon3.times_used).to eq(0)
     end
   end
 
@@ -46,6 +47,14 @@ RSpec.describe Coupon, type: :model do
 
       expect(Coupon.verify_unique_code(new_code)).to eq(false)
       expect(Coupon.verify_unique_code(@coupon1.code)).to eq(false)
+    end
+  end
+
+  describe ".pending_invoices?" do
+    it "check if any invoices are pending associated with coupon (3 examples)" do
+      expect(@coupon2.pending_invoices?).to eq(true)
+      expect(@coupon4.pending_invoices?).to eq(true)
+      expect(@coupon5.pending_invoices?).to eq(false)
     end
   end
 

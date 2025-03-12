@@ -269,7 +269,8 @@ RSpec.describe "Coupons of specific merchant", type: :request do
       error_message = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to_not be_successful
-      expect(error_message[:data][:errors]).to eq(["Code '#{identical_coupon_attributes[:code]}' already exists in database; you must create a unique code"])
+      #Check main message, since detailed error gives random new code which cannot (by definition) be duplicated here!
+      expect(error_message[:data][:message]).to eq("Illegal attempted operation based on current database state")
     end
 
     it "sad path: fails to create if certain parameter(s) are missing" do

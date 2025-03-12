@@ -23,7 +23,8 @@ class Api::V1::Merchants::CouponsController < ApplicationController
 
   def create
     if !Coupon.verify_unique_code(params[:code]) || params[:code] == ""
-      render json: ErrorSerializer.illegal_operation("Code '#{params[:code]}' already exists in database; you must create a unique code"), status: :unprocessable_entity
+      error_message = "Code '#{params[:code]}' already exists in database; you must create a unique code. Suggested code: '#{Coupon.generate_unique_code}'"
+      render json: ErrorSerializer.illegal_operation(error_message), status: :unprocessable_entity
       return
     end
 

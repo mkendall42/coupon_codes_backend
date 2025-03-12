@@ -39,5 +39,7 @@ Rails.application.routes.draw do
   patch "/api/v1/merchants/:merchant_id/coupons/:id", to: "api/v1/merchants/coupons#update"
   
   #For merchant invoices:
-  get "api/v1/merchants/:merchant_id/invoices", to: "api/v1/merchant_invoices#index"
+  get "/api/v1/merchants/:merchant_id/invoices", to: "api/v1/merchant_invoices#index"
+  patch "/api/v1/merchants/:merchant_id/invoices/:id", to: "api/v1/merchant_invoices#update"
+  
 end

@@ -1,6 +1,8 @@
 class Coupon < ApplicationRecord
   belongs_to :merchant
 
+  MAX_TIMES_USABLE = 3
+
   # validates :name, :code, presence: true    #Causes a lot of grief in details for FactoryBot, etc.  Will activate if I get time to fully check it out...
 
   def times_used
@@ -18,19 +20,19 @@ class Coupon < ApplicationRecord
     Invoice.where(coupon_id: self.id).where(status: "packaged").count > 0
   end
 
-#   #Generate a new unique code - should this be instance or class method?
-#   def generate_unique_code
-#     #Useful for FactoryBot or if user later desires it (extension)
-#     #LATER: append chars to indicate whether $ off or % off
-#     character_list = ("A".."Z").to_a
-#     character_list << ("0".."9").to_a
-#     character_list = character_list.flatten
-#     num_chars = 8
+  #Generate a new unique code - should this be instance or class method?
+  def self.generate_unique_code
+    #Useful for FactoryBot or if user later desires it (extension)
+    #LATER: append chars to indicate whether $ off or % off
+    character_list = ("A".."Z").to_a
+    character_list << ("0".."9").to_a
+    character_list = character_list.flatten
+    num_chars = 8
 
-#     loop do
-#       new_code = character_list.sample(num_chars).join("")
-#       return new_code if verify_unique_code
-#     end
-#   end
+    loop do
+      new_code = character_list.sample(num_chars).join("")
+      return new_code if verify_unique_code(new_code)
+    end
+  end
 
 end

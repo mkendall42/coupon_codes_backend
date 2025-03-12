@@ -57,4 +57,19 @@ RSpec.describe Coupon, type: :model do
     end
   end
 
+  describe "#generate_unique_code" do
+    it "genereates a random code which is unique among coupons" do
+      #NOTE: this is kinda hard to test.  But I can brute force it for a bit (though I won't *nearly* reach the expectation value of repeated entries...)
+
+      expect(Coupon.generate_unique_code.length).to eq(8)
+
+      previous_codes = []
+      50000.times do        #More than this, and it takes a long time, heh
+        previous_codes << Coupon.generate_unique_code
+      end
+
+      expect(previous_codes).to eq(previous_codes.uniq)
+    end
+  end
+
 end

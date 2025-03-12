@@ -23,7 +23,6 @@ class Coupon < ApplicationRecord
   #Generate a new unique code - should this be instance or class method?
   def self.generate_unique_code
     #Useful for FactoryBot or if user later desires it (extension)
-    #LATER: append chars to indicate whether $ off or % off
     character_list = ("A".."Z").to_a
     character_list << ("0".."9").to_a
     character_list = character_list.flatten

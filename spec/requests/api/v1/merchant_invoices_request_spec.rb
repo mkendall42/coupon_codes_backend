@@ -55,8 +55,7 @@ RSpec.describe "MerchantInvoices endpoints", type: :request do
       invoice7 = Invoice.create!(customer_id: @customer1.id, merchant_id: @merchant2.id, status: "packaged", coupon_id: @coupon3.id)
 
       updated_invoice_attributes = {
-        # merchant_id: @merchant2.id,     #I don't think we can change merchants at this point (unless AR knows automatically how to reassign via has_many / belongs_to)
-        coupon_id: @coupon3.id      #Already with @merchant2, so it's consistent
+        coupon_id: @coupon3.id
       }
 
       headers = {"CONTENT_TYPE" => "application/json"}
@@ -68,7 +67,18 @@ RSpec.describe "MerchantInvoices endpoints", type: :request do
     end
 
     it "sad path: cannot attach coupon if coupon inactive" do
-      coupon4 = Coupon.create!(name: "Second merchant big discount", code: "BIGGER40", status: true, discount_value: 40.00, discount_percentage: nil, merchant_id: @merchant2.id)
+      coupon4 = Coupon.create!(name: "So much discount, it must be a shady meme crypto!", code: "WOWZA95OFFWTF", status: false, discount_value: nil, discount_percentage: 95.0, merchant_id: @merchant2.id)
+
+      updated_invoice_attributes = {
+        coupon_id: coupon4.id
+      }
+
+      headers = {"CONTENT_TYPE" => "application/json"}
+      patch "/api/v1/merchants/#{@merchant2.id}/invoices/#{@invoice4.id}", headers: headers, params: JSON.generate(updated_invoice_attributes)
+      error_message = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to_not be_successful
+      expect(error_message[:data][:errors]).to eq(["Coupon with 'id'=#{coupon4.id} is presently inactive.  Must set to active before it is usable"])
     end
   end
 end
